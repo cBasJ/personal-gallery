@@ -113,37 +113,37 @@ export const projects: Project[] = [
       ],
       gallery: [
         {
-          src: "/projects/domino/loading.png",
+          src: "/projects/domino/loading.webp",
           alt: "Dominators loading screen with domino-themed background and progress bar",
           caption: "启动加载页：品牌视觉、背景骨牌和加载状态。",
         },
         {
-          src: "/projects/domino/main-menu.png",
+          src: "/projects/domino/main-menu.webp",
           alt: "Dominators login screen with login form and guest play option",
           caption: "登录页面：包含登录和游客游玩入口。",
         },
         {
-          src: "/projects/domino/mode-selection.png",
+          src: "/projects/domino/mode-selection.webp",
           alt: "Dominators mode selection screen",
           caption: "模式选择：离线、在线。",
         },
         {
-          src: "/projects/domino/game-table.png",
+          src: "/projects/domino/game-table.webp",
           alt: "Domino game table interface showing board, players, boneyard and hand",
           caption: "游戏桌面：棋盘、玩家状态、牌库、手牌与回合计时。",
         },
         {
-          src: "/projects/domino/create-room.png",
+          src: "/projects/domino/create-room.webp",
           alt: "Domino create room screen with team mode, lobby visibility and scoring controls",
           caption: "创建房间：队伍、可见性、游戏类型、目标分数和 Joker 配置。",
         },
         {
-          src: "/projects/domino/waiting-room-latest.png",
+          src: "/projects/domino/waiting-room-latest.webp",
           alt: "Domino profile page with player information",
           caption: "个人信息 profile 页面。",
         },
         {
-          src: "/projects/domino/rules-modal.png",
+          src: "/projects/domino/rules-modal.webp",
           alt: "Domino rules modal with tabs for basic rules, blocking, all fives and joker",
           caption: "规则弹窗：基础规则、Blocking、All Fives 与 Joker 分页说明。",
         },
@@ -241,52 +241,52 @@ export const projects: Project[] = [
       ],
       gallery: [
         {
-          src: "/projects/gamerun/wireframes-overview.png",
+          src: "/projects/gamerun/wireframes-overview.webp",
           alt: "GameRun low fidelity wireframes overview",
           caption: "低保真线框：登录、Dashboard、Store、Library、Random Game 和 Settings。",
         },
         {
-          src: "/projects/gamerun/prototype-flow.png",
+          src: "/projects/gamerun/prototype-flow.webp",
           alt: "GameRun Figma prototype flow map",
           caption: "原型交互流：注册、导航、购买和设置路径串联。",
         },
         {
-          src: "/projects/gamerun/component-system.png",
+          src: "/projects/gamerun/component-system.webp",
           alt: "GameRun Figma component system with cards, filters and buttons",
           caption: "组件实例：游戏卡片、筛选器、按钮和反馈提示。",
         },
         {
-          src: "/projects/gamerun/brand-visual.png",
+          src: "/projects/gamerun/brand-visual.webp",
           alt: "GameRun visual identity with a golden gaming logo on a dark fantasy background",
           caption: "视觉方向：深色游戏氛围、强对比背景与 GameRun 品牌入口。",
         },
         {
-          src: "/projects/gamerun/dashboard-screen.png",
+          src: "/projects/gamerun/dashboard-screen.webp",
           alt: "GameRun store high fidelity prototype",
           caption: "Store：游戏发现、卡片浏览、购物车与购买入口。",
         },
         {
-          src: "/projects/gamerun/store-screen.png",
+          src: "/projects/gamerun/store-screen.webp",
           alt: "GameRun library high fidelity prototype",
           caption: "Library：已拥有游戏的筛选、排序和快速访问。",
         },
         {
-          src: "/projects/gamerun/library-screen.png",
+          src: "/projects/gamerun/library-screen.webp",
           alt: "GameRun payment page with payment methods and current purchase details",
           caption: "支付页面：支付方式选择和当前购买项目信息。",
         },
         {
-          src: "/projects/gamerun/filter-system.png",
+          src: "/projects/gamerun/filter-system.webp",
           alt: "GameRun filter and sort modal with genre, status, playtime and sort controls",
           caption: "筛选系统：明确分类、安装状态、游玩时长和排序规则，降低查找成本。",
         },
         {
-          src: "/projects/gamerun/register-feedback.png",
+          src: "/projects/gamerun/register-feedback.webp",
           alt: "GameRun registered success screen after sign up",
           caption: "注册反馈：增加成功确认页，减少用户对注册结果的不确定感。",
         },
         {
-          src: "/projects/gamerun/payment-confirmation.png",
+          src: "/projects/gamerun/payment-confirmation.webp",
           alt: "GameRun payment successful screen showing confirmed order and download actions",
           caption: "购买反馈：支付成功、订单确认、游戏下载入口和收据状态清晰呈现。",
         },
@@ -336,22 +336,22 @@ export const projects: Project[] = [
       ],
       gallery: [
         {
-          src: "/projects/jardin/homepage-notice.png",
+          src: "/projects/jardin/homepage-notice.webp",
           alt: "Jardin d'Asie website homepage with restaurant brand, opening notice, menu and reservation entries",
           caption: "官网首页：品牌展示、营业公告、菜单入口和预约入口集中呈现。",
         },
         {
-          src: "/projects/jardin/menu-panel.png",
+          src: "/projects/jardin/menu-panel.webp",
           alt: "Jardin d'Asie website side menu panel with menu PDF entries",
           caption: "菜单入口：侧边栏展示菜单 PDF，用户可从首页快速打开菜单。",
         },
         {
-          src: "/projects/jardin/menu-pdf.png",
+          src: "/projects/jardin/menu-pdf.webp",
           alt: "Jardin d'Asie menu PDF with drink categories and prices",
           caption: "菜单 PDF：按品类和价格整理，保持版式统一、信息清晰。",
         },
         {
-          src: "/projects/jardin/google-profile.png",
+          src: "/projects/jardin/google-profile.webp",
           alt: "Jardin d'Asie Google Maps business profile with address, hours, phone and menu link",
           caption: "Google 商家资料：核对地址、营业时间、电话、菜单链接和服务类型。",
         },

@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import Antigravity from "./Antigravity";
 import CatEyes from "./CatEyes";
-import heroImage from "./assets/hero-workspace.png";
+import heroImage from "./assets/hero-workspace.webp";
 import { education, experiences, profile, projects, skillGroups } from "./profile";
 import SplitText from "./SplitText";
 
@@ -213,7 +213,7 @@ function App() {
       </section>
 
       <section className="hero" id="profile">
-        <img src={heroImage} alt="" className="hero-image" />
+        <img src={heroImage} alt="" className="hero-image" loading="lazy" decoding="async" />
         <div className="hero-overlay" />
         <div className="hero-inner">
           <div className="hero-content" data-reveal>
@@ -238,7 +238,12 @@ function App() {
           </div>
 
           <figure className="hero-portrait" data-reveal>
-            <img src={profile.photoUrl} alt={`${profile.englishName} 证件照`} />
+            <img
+              src={profile.photoUrl}
+              alt={`${profile.englishName} 证件照`}
+              loading="lazy"
+              decoding="async"
+            />
             <figcaption>
               <strong>{profile.englishName}</strong>
               <span>{profile.location}</span>
@@ -404,7 +409,12 @@ function App() {
                     type="button"
                     onClick={openLightbox}
                   >
-                    <img src={activeGallery.src} alt={activeGallery.alt} />
+                    <img
+                      src={activeGallery.src}
+                      alt={activeGallery.alt}
+                      loading="lazy"
+                      decoding="async"
+                    />
                     <span>点击放大</span>
                   </button>
                   <figcaption>{activeGallery.caption}</figcaption>
@@ -477,7 +487,11 @@ function App() {
                 </button>
               </>
             ) : null}
-            <img src={currentLightboxImage.src} alt={currentLightboxImage.alt} />
+            <img
+              src={currentLightboxImage.src}
+              alt={currentLightboxImage.alt}
+              decoding="async"
+            />
             <div className="lightbox-meta">
               <p>{currentLightboxImage.caption}</p>
               <span>
