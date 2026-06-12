@@ -17,7 +17,6 @@ import {
   X,
 } from "lucide-react";
 import Antigravity from "./Antigravity";
-import CatEyes from "./CatEyes";
 import heroImage from "./assets/hero-workspace.webp";
 import { education, experiences, profile, projects, skillGroups } from "./profile";
 import SplitText from "./SplitText";
@@ -245,7 +244,6 @@ function App() {
             </a>
           </div>
         </div>
-        <CatEyes />
       </section>
 
       <section className="hero" id="profile">
