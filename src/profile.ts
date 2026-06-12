@@ -43,12 +43,11 @@ export const profile = {
   name: "张人予",
   englishName: "Renyu Zhang",
   initials: "RZ",
-  title: "产品经理（实习） / 项目管理",
+  title: "产品经理（实习） / 项目管理 / 前端开发 / 全栈",
   location: "四川成都 / 法国斯特拉斯堡",
-  email: "89cBas979@gmail.com",
+  email: "zhangrenyufr@163.com",
   phone: "183 0285 7593",
   linkedin: "",
-  github: "https://github.com/cBasJ",
   photoUrl: "/profile/renyu-zhang.jpg",
   resumeUrl: "/renyu-zhang-resume.pdf",
   headline: "具备扎实计算机科学基础，关注从需求分析到系统实现的完整交付。",
@@ -56,12 +55,12 @@ export const profile = {
     "法国斯特拉斯堡大学计算机科学本科生，系统学习算法、数据库、软件工程与产品设计相关课程。曾参与多人在线桌游开发和 GameRun 游戏平台设计，兼具前端实现、产品原型、交互流程、用户测试与团队协作经验。",
   availability: "计算机科学本科 · 斯特拉斯堡大学",
   metrics: [
-    { label: "核心项目", value: "3" },
+    { label: "核心项目", value: "4" },
     { label: "语言能力", value: "中 / 英 / 法" },
-    { label: "重点方向", value: "产品 + 项目管理" },
+    { label: "重点方向", value: "产品 + 项目管理 + 前端/全栈" },
   ],
   strengths: [
-    "关注产品经理（实习）、项目管理与跨团队协作方向",
+    "关注产品经理（实习）、项目管理、前端开发/全栈与跨团队协作方向",
     "具备 Figma 原型、交互流程和用户测试迭代经验",
     "能独立完成从需求分析、原型设计到系统交付的流程",
     "具备中英法三语沟通能力和跨文化协作经验",
@@ -152,6 +151,53 @@ export const projects: Project[] = [
     },
   },
   {
+    title: "神秘旅途 MJWeb 联机桌游",
+    role: "全栈开发 / 实时游戏系统",
+    period: "进行中",
+    summary:
+      "基于 official v1.0 规则实现 4-6 人多人联机隐藏身份航海桌游，覆盖角色选择、隐藏身份、宝藏、船体、事件、对峙与多阵营胜利判定。",
+    impact:
+      "正在推进 React + TypeScript + Vite 客户端与 Node.js + Express + Socket.IO 服务端，采用服务端权威 GameState，客户端只提交行动意图，降低多人同步和作弊风险。",
+    tags: ["进行中", "React", "TypeScript", "Vite", "Node.js", "Express", "Socket.IO"],
+    caseStudy: {
+      context:
+        "《神秘旅途》是一款 4-6 人多人联机隐藏身份航海桌游。玩家选择公开角色登船，系统随后发放隐藏身份与隐藏任务。整局游戏围绕船体耐久、宝藏真假、甲板对峙、事件响应、鬼魂阶段和多阵营胜利条件展开。本项目是 v1.0 规则的 Web 联机测试版实现。",
+      contribution: [
+        "梳理 README 中的 official v1.0 规则，把玩家人数、身份配比、回合阶段、船体系统、宝藏补给和胜利条件拆成可实现模块",
+        "参与 React + TypeScript 前端交互实现，面向多人房间、角色选择、行动提交、状态展示和回合反馈设计页面流程",
+        "参与 Node.js + Express + Socket.IO 服务端联机逻辑，围绕权威 GameState 处理房间同步、行动意图和状态广播",
+        "规划本地多人测试方式，使用多个浏览器上下文验证房间加入、行动结算和实时同步稳定性",
+      ],
+      features: [
+        "支持 4-6 人身份配置，好人、破坏者与中立身份拥有不同胜利路径",
+        "公开角色与隐藏身份分离，角色决定生命值和技能，身份决定阵营与最终判定",
+        "船体系统包含甲板、引擎、货舱，分别影响沉船、摸牌惩罚和宝藏损失",
+        "第 2 回合后引入事件和甲板对峙，第 5 回合后允许好人宣称夺宝，第 10 回合进行最终判定",
+        "死亡玩家进入鬼魂状态，身份不公开但仍可在鬼魂阶段影响局势",
+      ],
+      engineering: [
+        "前端使用 React + TypeScript + Vite，承担房间 UI、状态呈现和玩家行动入口",
+        "服务端使用 Node.js + Express + Socket.IO 保存权威 GameState，客户端只发送行动意图",
+        "通过 WebSocket 广播同步回合、玩家、手牌可见性、船体、宝藏数量和阶段变化",
+        "部署方案采用前后端分离：Vercel 承载客户端，Render Web Service 承载服务端，并通过 VITE_SERVER_URL 配置后端地址",
+      ],
+      architecture: [
+        "React + TypeScript + Vite 客户端",
+        "Node.js + Express API",
+        "Socket.IO 实时房间同步",
+        "服务端权威 GameState",
+        "Vercel 前端 + Render 后端部署",
+      ],
+      gallery: [
+        {
+          src: "/projects/mjweb/system-overview.svg",
+          alt: "MJWeb hidden identity voyage game system overview diagram",
+          caption: "系统概览：玩家行动意图经 Socket.IO 进入服务端，由权威 GameState 统一结算并广播。",
+        },
+      ],
+    },
+  },
+  {
     title: "GameRun 游戏平台设计",
     role: "产品原型 / 交互设计 / 项目协作",
     period: "2025",
@@ -161,7 +207,7 @@ export const projects: Project[] = [
       "围绕注册登录、Dashboard、游戏库、Store、购买流程、个性化设置和 Random Game 功能建立清晰导航；基于测试反馈补强筛选器、加入购物车、注册成功和付款确认等关键反馈。",
     tags: ["Figma", "UX Research", "Wireframe", "Prototype", "User Testing", "Project Management"],
     link: {
-      label: "查看 Figma",
+      label: "访问 Figma",
       url: "https://www.figma.com/design/Gib1ZppALL1b99Fhogr3Tz/IHM-CC2?node-id=0-1&t=t9l65Qeh0U1E12Qo-1",
     },
     caseStudy: {
@@ -249,13 +295,68 @@ export const projects: Project[] = [
   },
   {
     title: "Jardin d'Asie 信息整理与系统维护",
-    role: "行政与信息支持",
+    role: "信息整理 / 内容维护 / 运营支持",
     period: "2024",
     summary:
-      "负责餐厅菜单及业务相关信息的结构化整理、内容规范化与线上系统日常维护。",
+      "围绕餐厅官网、线上菜单和 Google 商家资料，完成业务信息整理、菜单内容规范化、营业信息维护与日常运营支持。",
     impact:
-      "确保信息清晰、准确、便于使用，并在多任务环境中协助团队完成资料整理、信息协调和流程支持。",
-    tags: ["Information Management", "Operations", "Content Maintenance"],
+      "提升客户获取菜单、营业时间、地址、联系方式和预订入口的效率，保证线上信息清晰、准确、便于维护。",
+    tags: ["Information Management", "Operations", "Content Maintenance", "Google Business"],
+    link: {
+      label: "访问网站",
+      url: "https://jardin-dasie.eatbu.com/",
+    },
+    caseStudy: {
+      context:
+        "Jardin d'Asie 是位于法国 Haguenau 的亚洲餐厅。项目重点不是重新开发系统，而是在现有网站和线上平台基础上，把菜单、营业时间、公告、地址电话、预订入口和 Google 商家信息整理成更稳定、清晰、可持续维护的线上资料体系。",
+      contribution: [
+        "整理餐厅菜单与业务信息，统一菜品名称、分类、价格和展示顺序，减少顾客查找成本",
+        "协助维护官网首页公告、营业时间、菜单入口和预订入口，保证关键信息在客户访问时清楚可见",
+        "核对 Google Maps 商家资料中的地址、电话、营业时间、菜单链接和服务类型，提升外部平台信息一致性",
+        "在日常运营中处理信息更新、资料归档和跨语言内容校对，支持团队快速响应菜单或营业状态变化",
+      ],
+      features: [
+        "官网首页突出品牌、营业公告、菜单入口和预约入口",
+        "侧边菜单集中展示 PDF 菜单，方便顾客从首页直接访问菜品信息",
+        "菜单 PDF 按饮品、菜品类别和价格结构组织，便于阅读、打印和长期维护",
+        "Google Maps 商家资料承接搜索流量，展示评分、地址、电话、菜单链接和营业时间",
+      ],
+      engineering: [
+        "采用结构化信息整理方法，将菜品、价格、营业状态、联系方式和外部链接分成可核对字段",
+        "保持官网、菜单 PDF 与 Google 商家资料之间的信息一致，避免用户在不同入口看到冲突内容",
+        "关注多语言场景下的表达准确性，保证法语客户能快速理解公告、菜单和营业信息",
+        "以维护效率为目标，把经常变动的信息集中到首页公告、菜单文件和商家资料等关键触点",
+      ],
+      architecture: [
+        "餐厅官网内容维护",
+        "PDF 菜单信息整理",
+        "Google Maps 商家资料核对",
+        "营业时间与公告更新",
+        "运营资料归档与校对",
+      ],
+      gallery: [
+        {
+          src: "/projects/jardin/homepage-notice.png",
+          alt: "Jardin d'Asie website homepage with restaurant brand, opening notice, menu and reservation entries",
+          caption: "官网首页：品牌展示、营业公告、菜单入口和预约入口集中呈现。",
+        },
+        {
+          src: "/projects/jardin/menu-panel.png",
+          alt: "Jardin d'Asie website side menu panel with menu PDF entries",
+          caption: "菜单入口：侧边栏展示菜单 PDF，用户可从首页快速打开菜单。",
+        },
+        {
+          src: "/projects/jardin/menu-pdf.png",
+          alt: "Jardin d'Asie menu PDF with drink categories and prices",
+          caption: "菜单 PDF：按品类和价格整理，保持版式统一、信息清晰。",
+        },
+        {
+          src: "/projects/jardin/google-profile.png",
+          alt: "Jardin d'Asie Google Maps business profile with address, hours, phone and menu link",
+          caption: "Google 商家资料：核对地址、营业时间、电话、菜单链接和服务类型。",
+        },
+      ],
+    },
   },
 ];
 

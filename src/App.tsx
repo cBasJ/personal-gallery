@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
   BriefcaseBusiness,
@@ -7,7 +7,6 @@ import {
   Code2,
   Download,
   GalleryHorizontalEnd,
-  Github,
   Layers3,
   Linkedin,
   Mail,
@@ -17,8 +16,11 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import Antigravity from "./Antigravity";
+import CatEyes from "./CatEyes";
 import heroImage from "./assets/hero-workspace.png";
 import { education, experiences, profile, projects, skillGroups } from "./profile";
+import SplitText from "./SplitText";
 
 const navItems = [
   { href: "#work", label: "项目" },
@@ -29,6 +31,8 @@ const navItems = [
 ];
 
 function App() {
+  const projectRailRef = useRef<HTMLDivElement>(null);
+  const [welcomeReady, setWelcomeReady] = useState(false);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
   const [lightboxImage, setLightboxImage] = useState<{
@@ -49,6 +53,51 @@ function App() {
     setActiveProjectIndex(index);
     setActiveGalleryIndex(0);
   };
+
+  const scrollProjectRail = (direction: -1 | 1) => {
+    const rail = projectRailRef.current;
+    if (!rail) return;
+    rail.scrollBy({
+      behavior: "smooth",
+      left: direction * rail.clientWidth * 0.72,
+    });
+  };
+
+  const enterPortfolio = () => {
+    document.querySelector("#profile")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const revealItems = document.querySelectorAll<HTMLElement>("[data-reveal]");
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      revealItems.forEach((item) => item.classList.add("is-visible"));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -12% 0px", threshold: 0.16 },
+    );
+
+    revealItems.forEach((item) => observer.observe(item));
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const welcomeTimer = window.setTimeout(() => {
+      setWelcomeReady(true);
+    }, 1800);
+
+    return () => window.clearTimeout(welcomeTimer);
+  }, []);
 
   useEffect(() => {
     if (!lightboxImage) return;
@@ -86,7 +135,7 @@ function App() {
   };
 
   return (
-    <main>
+    <main className="app-shell">
       <header className="site-header" aria-label="主导航">
         <a className="brand" href="#top" aria-label={`${profile.name} 首页`}>
           <span>{profile.initials}</span>
@@ -101,11 +150,73 @@ function App() {
         </nav>
       </header>
 
-      <section className="hero" id="top">
+      <section className="welcome-screen" id="top" aria-label="欢迎界面">
+        <div className="welcome-background" aria-hidden="true">
+          <div className="antigravity-layer">
+            <Antigravity
+              count={300}
+              magnetRadius={10}
+              ringRadius={10}
+              waveSpeed={0.4}
+              waveAmplitude={1}
+              particleSize={2}
+              lerpSpeed={0.1}
+              color="#64D7EA"
+              autoAnimate={false}
+              particleVariance={1}
+              rotationSpeed={0}
+              depthFactor={1}
+              pulseSpeed={3}
+              particleShape="capsule"
+              fieldStrength={10}
+            />
+          </div>
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="welcome-inner">
+          <p className="welcome-kicker">
+            <Sparkles size={16} aria-hidden="true" />
+            Portfolio 2026
+          </p>
+          <SplitText
+            tag="h1"
+            text="欢迎来到我的作品集"
+            className="welcome-title"
+            delay={70}
+            duration={0.72}
+            ease="power3.out"
+            splitType="chars"
+            from={{ opacity: 0, y: 64, rotateX: -72 }}
+            to={{ opacity: 1, y: 0, rotateX: 0 }}
+            rootMargin="0px"
+            threshold={0.05}
+            textAlign="center"
+            onLetterAnimationComplete={() => setWelcomeReady(true)}
+          />
+          <p className={`welcome-subtitle ${welcomeReady ? "is-visible" : ""}`}>
+            产品经理（实习） / 项目管理 / 前端开发 / 全栈
+          </p>
+          <div className={`welcome-actions ${welcomeReady ? "is-visible" : ""}`}>
+            <button className="button primary" type="button" onClick={enterPortfolio}>
+              进入作品集
+              <ArrowUpRight size={18} aria-hidden="true" />
+            </button>
+            <a className="button secondary" href={profile.resumeUrl}>
+              <Download size={18} aria-hidden="true" />
+              下载简历
+            </a>
+          </div>
+        </div>
+        <CatEyes />
+      </section>
+
+      <section className="hero" id="profile">
         <img src={heroImage} alt="" className="hero-image" />
         <div className="hero-overlay" />
         <div className="hero-inner">
-          <div className="hero-content">
+          <div className="hero-content" data-reveal>
             <div className="eyebrow">
               <Sparkles size={16} aria-hidden="true" />
               {profile.availability}
@@ -126,7 +237,7 @@ function App() {
             </div>
           </div>
 
-          <figure className="hero-portrait">
+          <figure className="hero-portrait" data-reveal>
             <img src={profile.photoUrl} alt={`${profile.englishName} 证件照`} />
             <figcaption>
               <strong>{profile.englishName}</strong>
@@ -136,7 +247,7 @@ function App() {
         </div>
       </section>
 
-      <section className="summary-band" aria-label="个人摘要">
+      <section className="summary-band" aria-label="个人摘要" data-reveal>
         <div className="summary-inner">
           {profile.metrics.map((metric) => (
             <div className="metric" key={metric.label}>
@@ -147,7 +258,7 @@ function App() {
         </div>
       </section>
 
-      <section className="section intro-grid">
+      <section className="section intro-grid" data-reveal>
         <div>
           <p className="section-kicker">Profile</p>
           <h2>以扎实工程基础，把想法设计清楚并实现出来。</h2>
@@ -162,18 +273,32 @@ function App() {
         </div>
       </section>
 
-      <section className="section" id="work">
+      <section className="section" id="work" data-reveal>
         <div className="section-heading">
           <div>
             <p className="section-kicker">Selected Work</p>
             <h2>精选项目</h2>
           </div>
-          <a className="text-link" href={profile.github}>
-            查看更多
-            <ArrowUpRight size={17} aria-hidden="true" />
-          </a>
+          <div className="carousel-controls" aria-label="项目滑动控制">
+            <button
+              type="button"
+              onClick={() => scrollProjectRail(-1)}
+              aria-label="向左浏览项目"
+              title="向左浏览项目"
+            >
+              <ChevronLeft size={20} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollProjectRail(1)}
+              aria-label="向右浏览项目"
+              title="向右浏览项目"
+            >
+              <ChevronRight size={20} aria-hidden="true" />
+            </button>
+          </div>
         </div>
-        <div className="project-grid">
+        <div className="project-grid" ref={projectRailRef}>
           {projects.map((project, index) => (
             <article
               className={`project-card ${index === activeProjectIndex ? "is-active" : ""}`}
@@ -190,7 +315,9 @@ function App() {
               aria-pressed={index === activeProjectIndex}
             >
               <div className="project-topline">
-                <span>{project.period}</span>
+                <span className={project.period === "进行中" ? "status-pill" : undefined}>
+                  {project.period}
+                </span>
                 <span>{project.role}</span>
               </div>
               <h3>{project.title}</h3>
@@ -216,7 +343,7 @@ function App() {
         </div>
 
         {activeCaseStudy ? (
-          <div className="case-study" aria-label={`${activeProject.title} 详情`}>
+          <div className="case-study" aria-label={`${activeProject.title} 详情`} data-reveal>
             <div className="case-study-copy">
               <div className="case-study-heading">
                 <p className="section-kicker">Case Study</p>
@@ -361,7 +488,7 @@ function App() {
         </div>
       ) : null}
 
-      <section className="section experience-section" id="experience">
+      <section className="section experience-section" id="experience" data-reveal>
         <div className="section-heading">
           <div>
             <p className="section-kicker">Experience</p>
@@ -392,7 +519,7 @@ function App() {
         </div>
       </section>
 
-      <section className="section education-section" id="education">
+      <section className="section education-section" id="education" data-reveal>
         <div className="section-heading">
           <div>
             <p className="section-kicker">Education</p>
@@ -417,7 +544,7 @@ function App() {
         </div>
       </section>
 
-      <section className="section" id="skills">
+      <section className="section" id="skills" data-reveal>
         <div className="section-heading">
           <div>
             <p className="section-kicker">Capabilities</p>
@@ -439,7 +566,7 @@ function App() {
         </div>
       </section>
 
-      <section className="contact" id="contact">
+      <section className="contact" id="contact" data-reveal>
         <div>
           <p className="section-kicker">Contact</p>
           <h2>期待聊聊你的团队正在解决的问题。</h2>
@@ -459,10 +586,6 @@ function App() {
               LinkedIn
             </a>
           ) : null}
-          <a href={profile.github}>
-            <Github size={18} aria-hidden="true" />
-            GitHub
-          </a>
           <span>
             <MapPin size={18} aria-hidden="true" />
             {profile.location}
