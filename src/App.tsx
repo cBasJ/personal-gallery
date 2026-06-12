@@ -32,6 +32,7 @@ const navItems = [
 
 function App() {
   const projectRailRef = useRef<HTMLDivElement>(null);
+  const preloadedImagesRef = useRef<HTMLImageElement[]>([]);
   const [welcomeReady, setWelcomeReady] = useState(false);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
@@ -97,6 +98,32 @@ function App() {
     }, 1800);
 
     return () => window.clearTimeout(welcomeTimer);
+  }, []);
+
+  useEffect(() => {
+    const preloadImages = () => {
+      const sources = new Set<string>([heroImage, profile.photoUrl]);
+
+      projects.forEach((project) => {
+        project.caseStudy?.gallery.forEach((image) => {
+          sources.add(image.src);
+        });
+      });
+
+      preloadedImagesRef.current = Array.from(sources).map((source) => {
+        const image = new Image();
+        image.decoding = "async";
+        image.src = source;
+        return image;
+      });
+    };
+
+    const preloadTimer = window.setTimeout(preloadImages, 400);
+
+    return () => {
+      window.clearTimeout(preloadTimer);
+      preloadedImagesRef.current = [];
+    };
   }, []);
 
   useEffect(() => {
@@ -213,7 +240,7 @@ function App() {
       </section>
 
       <section className="hero" id="profile">
-        <img src={heroImage} alt="" className="hero-image" loading="lazy" decoding="async" />
+        <img src={heroImage} alt="" className="hero-image" decoding="async" />
         <div className="hero-overlay" />
         <div className="hero-inner">
           <div className="hero-content" data-reveal>
@@ -241,7 +268,6 @@ function App() {
             <img
               src={profile.photoUrl}
               alt={`${profile.englishName} 证件照`}
-              loading="lazy"
               decoding="async"
             />
             <figcaption>
@@ -412,7 +438,6 @@ function App() {
                     <img
                       src={activeGallery.src}
                       alt={activeGallery.alt}
-                      loading="lazy"
                       decoding="async"
                     />
                     <span>点击放大</span>
