@@ -32,6 +32,7 @@ const navItems = [
 
 function App() {
   const projectRailRef = useRef<HTMLDivElement>(null);
+  const caseStudyRef = useRef<HTMLDivElement>(null);
   const preloadedImagesRef = useRef<HTMLImageElement[]>([]);
   const [welcomeReady, setWelcomeReady] = useState(false);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
@@ -53,6 +54,14 @@ function App() {
   const handleProjectSelect = (index: number) => {
     setActiveProjectIndex(index);
     setActiveGalleryIndex(0);
+  };
+
+  const handleCaseStudySwitch = (index: number) => {
+    setActiveProjectIndex(index);
+    setActiveGalleryIndex(0);
+    window.setTimeout(() => {
+      caseStudyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
   };
 
   const scrollProjectRail = (direction: -1 | 1) => {
@@ -374,7 +383,26 @@ function App() {
         </div>
 
         {activeCaseStudy ? (
-          <div className="case-study" aria-label={`${activeProject.title} 详情`} data-reveal>
+          <div
+            className="case-study"
+            ref={caseStudyRef}
+            aria-label={`${activeProject.title} 详情`}
+            data-reveal
+          >
+            <div className="case-study-switcher" aria-label="快速切换项目">
+              {projects.map((project, index) => (
+                <button
+                  className={index === activeProjectIndex ? "is-active" : ""}
+                  key={project.title}
+                  type="button"
+                  onClick={() => handleCaseStudySwitch(index)}
+                  aria-label={`切换到${project.title}`}
+                  title={project.title}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
             <div className="case-study-copy">
               <div className="case-study-heading">
                 <p className="section-kicker">Case Study</p>
