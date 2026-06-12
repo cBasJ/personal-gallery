@@ -173,10 +173,12 @@ function SplitText({
       ref={ref}
       className={`split-parent ${className}`}
       style={{
-        display: "inline-block",
+        display: "block",
+        maxWidth: "100%",
         overflow: "hidden",
         textAlign,
         whiteSpace: "normal",
+        width: "100%",
         willChange: "transform, opacity",
         wordWrap: "break-word",
       }}
