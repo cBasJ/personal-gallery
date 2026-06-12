@@ -1,24 +1,90 @@
+import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
   BriefcaseBusiness,
+  ChevronLeft,
+  ChevronRight,
+  Code2,
+  Download,
+  GalleryHorizontalEnd,
   Github,
+  Layers3,
   Linkedin,
   Mail,
   MapPin,
+  Network,
   Phone,
   Sparkles,
+  X,
 } from "lucide-react";
 import heroImage from "./assets/hero-workspace.png";
-import { experiences, profile, projects, skillGroups } from "./profile";
+import { education, experiences, profile, projects, skillGroups } from "./profile";
 
 const navItems = [
   { href: "#work", label: "项目" },
   { href: "#experience", label: "经历" },
+  { href: "#education", label: "教育" },
   { href: "#skills", label: "能力" },
   { href: "#contact", label: "联系" },
 ];
 
 function App() {
+  const [activeProjectIndex, setActiveProjectIndex] = useState(0);
+  const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
+  const [lightboxImage, setLightboxImage] = useState<{
+    projectIndex: number;
+    galleryIndex: number;
+  } | null>(null);
+  const activeProject = projects[activeProjectIndex];
+  const activeCaseStudy = activeProject.caseStudy;
+  const activeGallery = activeCaseStudy?.gallery[activeGalleryIndex];
+  const lightboxProject = lightboxImage ? projects[lightboxImage.projectIndex] : null;
+  const lightboxGallery = lightboxProject?.caseStudy?.gallery ?? [];
+  const currentLightboxImage =
+    lightboxImage && lightboxGallery.length > 0
+      ? lightboxGallery[lightboxImage.galleryIndex]
+      : null;
+
+  const handleProjectSelect = (index: number) => {
+    setActiveProjectIndex(index);
+    setActiveGalleryIndex(0);
+  };
+
+  useEffect(() => {
+    if (!lightboxImage) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setLightboxImage(null);
+      } else if (event.key === "ArrowLeft") {
+        showLightboxImage(-1);
+      } else if (event.key === "ArrowRight") {
+        showLightboxImage(1);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxImage, lightboxGallery.length]);
+
+  const openLightbox = () => {
+    if (!activeGallery) return;
+    setLightboxImage({
+      projectIndex: activeProjectIndex,
+      galleryIndex: activeGalleryIndex,
+    });
+  };
+
+  const showLightboxImage = (direction: -1 | 1) => {
+    if (!lightboxImage) return;
+    const galleryLength = projects[lightboxImage.projectIndex].caseStudy?.gallery.length ?? 0;
+    if (galleryLength === 0) return;
+    const galleryIndex =
+      (lightboxImage.galleryIndex + direction + galleryLength) % galleryLength;
+
+    setActiveProjectIndex(lightboxImage.projectIndex);
+    setActiveGalleryIndex(galleryIndex);
+    setLightboxImage({ ...lightboxImage, galleryIndex });
+  };
+
   return (
     <main>
       <header className="site-header" aria-label="主导航">
@@ -38,25 +104,35 @@ function App() {
       <section className="hero" id="top">
         <img src={heroImage} alt="" className="hero-image" />
         <div className="hero-overlay" />
-        <div className="hero-content">
-          <div className="eyebrow">
-            <Sparkles size={16} aria-hidden="true" />
-            {profile.availability}
+        <div className="hero-inner">
+          <div className="hero-content">
+            <div className="eyebrow">
+              <Sparkles size={16} aria-hidden="true" />
+              {profile.availability}
+            </div>
+            <h1>{profile.name}</h1>
+            <p className="hero-title">{profile.title}</p>
+            <p className="hero-headline">{profile.headline}</p>
+            <p className="hero-intro">{profile.intro}</p>
+            <div className="hero-actions" aria-label="主要操作">
+              <a className="button primary" href={`mailto:${profile.email}`}>
+                <Mail size={18} aria-hidden="true" />
+                联系我
+              </a>
+              <a className="button secondary" href={profile.resumeUrl}>
+                <Download size={18} aria-hidden="true" />
+                下载简历
+              </a>
+            </div>
           </div>
-          <h1>{profile.name}</h1>
-          <p className="hero-title">{profile.title}</p>
-          <p className="hero-headline">{profile.headline}</p>
-          <p className="hero-intro">{profile.intro}</p>
-          <div className="hero-actions" aria-label="主要操作">
-            <a className="button primary" href={`mailto:${profile.email}`}>
-              <Mail size={18} aria-hidden="true" />
-              联系我
-            </a>
-            <a className="button secondary" href="#work">
-              <ArrowUpRight size={18} aria-hidden="true" />
-              查看项目
-            </a>
-          </div>
+
+          <figure className="hero-portrait">
+            <img src={profile.photoUrl} alt={`${profile.englishName} 证件照`} />
+            <figcaption>
+              <strong>{profile.englishName}</strong>
+              <span>{profile.location}</span>
+            </figcaption>
+          </figure>
         </div>
       </section>
 
@@ -74,7 +150,7 @@ function App() {
       <section className="section intro-grid">
         <div>
           <p className="section-kicker">Profile</p>
-          <h2>清晰判断，稳定交付，关注真正产生结果的细节。</h2>
+          <h2>以扎实工程基础，把想法设计清楚并实现出来。</h2>
         </div>
         <div className="strengths">
           {profile.strengths.map((strength) => (
@@ -98,8 +174,21 @@ function App() {
           </a>
         </div>
         <div className="project-grid">
-          {projects.map((project) => (
-            <article className="project-card" key={project.title}>
+          {projects.map((project, index) => (
+            <article
+              className={`project-card ${index === activeProjectIndex ? "is-active" : ""}`}
+              key={project.title}
+              role="button"
+              tabIndex={0}
+              onClick={() => handleProjectSelect(index)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  handleProjectSelect(index);
+                }
+              }}
+              aria-pressed={index === activeProjectIndex}
+            >
               <div className="project-topline">
                 <span>{project.period}</span>
                 <span>{project.role}</span>
@@ -112,10 +201,165 @@ function App() {
                   <span key={tag}>{tag}</span>
                 ))}
               </div>
+              {project.link ? (
+                <a
+                  className="project-link"
+                  href={project.link.url}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {project.link.label}
+                  <ArrowUpRight size={16} aria-hidden="true" />
+                </a>
+              ) : null}
             </article>
           ))}
         </div>
+
+        {activeCaseStudy ? (
+          <div className="case-study" aria-label={`${activeProject.title} 详情`}>
+            <div className="case-study-copy">
+              <div className="case-study-heading">
+                <p className="section-kicker">Case Study</p>
+                <h3>{activeProject.title}</h3>
+                <p>{activeCaseStudy.context}</p>
+                {activeProject.link ? (
+                  <a className="case-study-link" href={activeProject.link.url}>
+                    {activeProject.link.label}
+                    <ArrowUpRight size={17} aria-hidden="true" />
+                  </a>
+                ) : null}
+              </div>
+
+              <div className="case-study-groups">
+                <div className="detail-group">
+                  <div className="detail-title">
+                    <Layers3 size={18} aria-hidden="true" />
+                    我的职责
+                  </div>
+                  <ul>
+                    {activeCaseStudy.contribution.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="detail-group">
+                  <div className="detail-title">
+                    <GalleryHorizontalEnd size={18} aria-hidden="true" />
+                    产品功能
+                  </div>
+                  <ul>
+                    {activeCaseStudy.features.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="detail-group">
+                  <div className="detail-title">
+                    <Code2 size={18} aria-hidden="true" />
+                    工程亮点
+                  </div>
+                  <ul>
+                    {activeCaseStudy.engineering.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="case-study-media">
+              {activeGallery ? (
+                <figure>
+                  <button
+                    className="gallery-preview"
+                    type="button"
+                    onClick={openLightbox}
+                  >
+                    <img src={activeGallery.src} alt={activeGallery.alt} />
+                    <span>点击放大</span>
+                  </button>
+                  <figcaption>{activeGallery.caption}</figcaption>
+                </figure>
+              ) : null}
+
+              <div className="gallery-tabs" aria-label="项目截图">
+                {activeCaseStudy.gallery.map((image, index) => (
+                  <button
+                    className={index === activeGalleryIndex ? "is-active" : ""}
+                    key={image.src}
+                    type="button"
+                    onClick={() => setActiveGalleryIndex(index)}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+              </div>
+
+              <div className="architecture-list">
+                <div className="detail-title">
+                  <Network size={18} aria-hidden="true" />
+                  技术架构
+                </div>
+                <div>
+                  {activeCaseStudy.architecture.map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </section>
+
+      {currentLightboxImage && lightboxImage ? (
+        <div
+          className="lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label="项目图片预览"
+          onClick={() => setLightboxImage(null)}
+        >
+          <div className="lightbox-panel" onClick={(event) => event.stopPropagation()}>
+            <button
+              className="lightbox-close"
+              type="button"
+              onClick={() => setLightboxImage(null)}
+              aria-label="关闭图片预览"
+            >
+              <X size={22} aria-hidden="true" />
+            </button>
+            {lightboxGallery.length > 1 ? (
+              <>
+                <button
+                  className="lightbox-nav previous"
+                  type="button"
+                  onClick={() => showLightboxImage(-1)}
+                  aria-label="上一张图片"
+                >
+                  <ChevronLeft size={28} aria-hidden="true" />
+                </button>
+                <button
+                  className="lightbox-nav next"
+                  type="button"
+                  onClick={() => showLightboxImage(1)}
+                  aria-label="下一张图片"
+                >
+                  <ChevronRight size={28} aria-hidden="true" />
+                </button>
+              </>
+            ) : null}
+            <img src={currentLightboxImage.src} alt={currentLightboxImage.alt} />
+            <div className="lightbox-meta">
+              <p>{currentLightboxImage.caption}</p>
+              <span>
+                {lightboxImage.galleryIndex + 1} / {lightboxGallery.length}
+              </span>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <section className="section experience-section" id="experience">
         <div className="section-heading">
@@ -143,6 +387,31 @@ function App() {
                   ))}
                 </ul>
               </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="section education-section" id="education">
+        <div className="section-heading">
+          <div>
+            <p className="section-kicker">Education</p>
+            <h2>教育背景</h2>
+          </div>
+        </div>
+        <div className="education-grid">
+          {education.map((item) => (
+            <article className="education-card" key={item.school}>
+              <div>
+                <span>{item.period}</span>
+                <h3>{item.school}</h3>
+                <p>{item.degree}</p>
+              </div>
+              <ul>
+                {item.highlights.map((highlight) => (
+                  <li key={highlight}>{highlight}</li>
+                ))}
+              </ul>
             </article>
           ))}
         </div>
@@ -184,10 +453,12 @@ function App() {
             <Phone size={18} aria-hidden="true" />
             {profile.phone}
           </a>
-          <a href={profile.linkedin}>
-            <Linkedin size={18} aria-hidden="true" />
-            LinkedIn
-          </a>
+          {profile.linkedin ? (
+            <a href={profile.linkedin}>
+              <Linkedin size={18} aria-hidden="true" />
+              LinkedIn
+            </a>
+          ) : null}
           <a href={profile.github}>
             <Github size={18} aria-hidden="true" />
             GitHub
