@@ -49,6 +49,26 @@ function App() {
   const activeProject = projects[activeProjectIndex];
   const activeCaseStudy = activeProject.caseStudy;
   const activeGallery = activeCaseStudy?.gallery[activeGalleryIndex];
+  const activeCover = activeCaseStudy?.gallery[0] ?? activeGallery;
+  const projectInsightGroups = activeCaseStudy
+    ? [
+        {
+          icon: Layers3,
+          items: activeCaseStudy.contribution,
+          label: "我的职责",
+        },
+        {
+          icon: GalleryHorizontalEnd,
+          items: activeCaseStudy.features,
+          label: "产品功能",
+        },
+        {
+          icon: Code2,
+          items: activeCaseStudy.engineering,
+          label: "工程亮点",
+        },
+      ]
+    : [];
   const lightboxProject = lightboxImage ? projects[lightboxImage.projectIndex] : null;
   const lightboxGallery = lightboxProject?.caseStudy?.gallery ?? [];
   const currentLightboxImage =
@@ -72,9 +92,11 @@ function App() {
   const scrollProjectRail = (direction: -1 | 1) => {
     const rail = projectRailRef.current;
     if (!rail) return;
+    const isVertical = window.getComputedStyle(rail).flexDirection === "column";
     rail.scrollBy({
       behavior: "smooth",
-      left: direction * rail.clientWidth * 0.72,
+      left: isVertical ? 0 : direction * rail.clientWidth * 0.72,
+      top: isVertical ? direction * rail.clientHeight * 0.58 : 0,
     });
   };
 
@@ -416,73 +438,141 @@ function App() {
         </div>
       </section>
 
-      <section className="section" id="work" data-reveal>
-        <div className="section-heading">
-          <div>
-            <p className="section-kicker">Selected Work</p>
-            <h2>精选项目</h2>
-          </div>
-          <div className="carousel-controls" aria-label="项目滑动控制">
-            <button
-              type="button"
-              onClick={() => scrollProjectRail(-1)}
-              aria-label="向左浏览项目"
-              title="向左浏览项目"
-            >
-              <ChevronLeft size={20} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollProjectRail(1)}
-              aria-label="向右浏览项目"
-              title="向右浏览项目"
-            >
-              <ChevronRight size={20} aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-        <div className="project-grid" ref={projectRailRef}>
-          {projects.map((project, index) => (
-            <article
-              className={`project-card ${index === activeProjectIndex ? "is-active" : ""}`}
-              key={project.title}
-              role="button"
-              tabIndex={0}
-              onClick={() => handleProjectSelect(index)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  handleProjectSelect(index);
-                }
-              }}
-              aria-pressed={index === activeProjectIndex}
-            >
-              <div className="project-topline">
-                <span className={project.period === "进行中" ? "status-pill" : undefined}>
-                  {project.period}
-                </span>
-                <span>{project.role}</span>
+      <section className="section project-section" id="work" data-reveal>
+        <div className="project-showcase">
+          {activeCover ? (
+            <img
+              src={activeCover.src}
+              alt=""
+              className="project-showcase-bg"
+              decoding="async"
+              aria-hidden="true"
+            />
+          ) : null}
+          <div className="project-stage">
+            {activeCover ? (
+              <img
+                src={activeCover.src}
+                alt={activeCover.alt}
+                className="project-stage-image"
+                decoding="async"
+              />
+            ) : null}
+            <div className="project-stage-overlay" />
+            <div className="project-stage-copy" key={activeProject.title}>
+              <div className="project-meta-line">
+                <span>{activeProject.role}</span>
+                <span>{activeProject.period}</span>
               </div>
-              <h3>{project.title}</h3>
-              <p>{project.summary}</p>
-              <strong>{project.impact}</strong>
-              <div className="tag-list" aria-label={`${project.title} 技术标签`}>
-                {project.tags.map((tag) => (
-                  <span key={tag}>{tag}</span>
-                ))}
-              </div>
-              {project.link ? (
-                <a
-                  className="project-link"
-                  href={project.link.url}
-                  onClick={(event) => event.stopPropagation()}
+              <h2>{activeProject.title}</h2>
+              <p>{activeProject.summary}</p>
+              <strong>{activeProject.impact}</strong>
+              {projectInsightGroups.length > 0 ? (
+                <div
+                  className="project-insight-panel"
+                  aria-label={`${activeProject.title} 的职责、功能和工程亮点`}
                 >
-                  {project.link.label}
-                  <ArrowUpRight size={16} aria-hidden="true" />
-                </a>
+                  {projectInsightGroups.map(({ icon: Icon, items, label }) => (
+                    <section className="project-insight-group" key={label}>
+                      <h3>
+                        <Icon size={16} aria-hidden="true" />
+                        {label}
+                      </h3>
+                      <ul>
+                        {items.slice(0, 3).map((item, index) => (
+                          <li key={item}>
+                            <span>{String(index + 1).padStart(2, "0")}</span>
+                            <p>{item}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  ))}
+                </div>
               ) : null}
-            </article>
-          ))}
+              <div className="project-stage-actions">
+                <div className="tag-list" aria-label={`${activeProject.title} 技术标签`}>
+                  {activeProject.tags.map((tag) => (
+                    <span key={tag}>{tag}</span>
+                  ))}
+                </div>
+                {activeProject.link ? (
+                  <a className="project-link" href={activeProject.link.url}>
+                    {activeProject.link.label}
+                    <ArrowUpRight size={16} aria-hidden="true" />
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          <aside className="project-rail-panel" aria-label="项目列表">
+            <div className="project-rail-heading">
+              <div>
+                <p className="section-kicker">Selected Work</p>
+                <h2>精选项目</h2>
+              </div>
+              <div className="carousel-controls" aria-label="项目滑动控制">
+                <button
+                  type="button"
+                  onClick={() => scrollProjectRail(-1)}
+                  aria-label="浏览上一个项目"
+                  title="浏览上一个项目"
+                >
+                  <ChevronLeft size={20} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollProjectRail(1)}
+                  aria-label="浏览下一个项目"
+                  title="浏览下一个项目"
+                >
+                  <ChevronRight size={20} aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+
+            <div className="project-grid" ref={projectRailRef}>
+              {projects.map((project, index) => {
+                const cover = project.caseStudy?.gallery[0];
+                return (
+                  <article
+                    className={`project-card ${index === activeProjectIndex ? "is-active" : ""}`}
+                    key={project.title}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleProjectSelect(index)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        handleProjectSelect(index);
+                      }
+                    }}
+                    aria-pressed={index === activeProjectIndex}
+                  >
+                    <div className="project-thumb">
+                      {cover ? (
+                        <img src={cover.src} alt={cover.alt} decoding="async" />
+                      ) : null}
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      <em>{project.period}</em>
+                    </div>
+                    <div className="project-card-body">
+                      <div className="project-topline">
+                        <span className={project.period === "进行中" ? "status-pill" : undefined}>
+                          {project.period}
+                        </span>
+                        <span>{project.role}</span>
+                      </div>
+                      <h3>{project.title}</h3>
+                      <ArrowUpRight size={15} aria-hidden="true" />
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            <p className="project-count">{projects.length} projects · 2024–2026</p>
+          </aside>
         </div>
 
         {activeCaseStudy ? (
