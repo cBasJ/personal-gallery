@@ -1,9 +1,10 @@
-import { type MouseEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, type MouseEvent, useEffect, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   ArrowUpRight,
+  Bot,
   BriefcaseBusiness,
   ChevronLeft,
   ChevronRight,
@@ -14,7 +15,9 @@ import {
   Linkedin,
   Mail,
   MapPin,
+  MessageCircle,
   Phone,
+  SendHorizontal,
   Sparkles,
   X,
 } from "lucide-react";
@@ -33,12 +36,92 @@ const navItems = [
   { href: "#contact", label: "联系" },
 ];
 
+type HrChatMessage = {
+  id: number;
+  role: "bot" | "user";
+  text: string;
+};
+
+const hrQuickQuestions = ["求职方向？", "核心项目？", "技术栈？", "语言能力？"];
+
+const includesAny = (text: string, keywords: string[]) =>
+  keywords.some((keyword) => text.includes(keyword));
+
+const buildHrAnswer = (rawQuestion: string) => {
+  const question = rawQuestion.trim();
+  const compact = question.replace(/\s/g, "").toLowerCase();
+  const projectTitles = projects.map((project) => project.title).join("、");
+  const skillSummary = skillGroups
+    .map((group) => `${group.title}：${group.skills.join("、")}`)
+    .join("；");
+
+  if (includesAny(compact, ["联系方式", "联系", "邮箱", "电话", "contact", "email", "phone"])) {
+    return `可以通过邮箱 ${profile.email} 或电话 ${profile.phone} 联系 ${profile.name}。所在地/学习经历覆盖 ${profile.location}。`;
+  }
+
+  if (includesAny(compact, ["简历", "resume", "cv"])) {
+    return `简历入口在页面顶部按钮中，文件路径是 ${profile.resumeUrl}。如果需要更详细项目材料，也可以通过 ${profile.email} 联系。`;
+  }
+
+  if (includesAny(compact, ["岗位", "方向", "求职", "应聘", "职位", "实习", "role", "position"])) {
+    return `${profile.englishName} 关注 ${profile.title} 相关机会，尤其适合产品经理实习、项目管理、前端开发/全栈以及需要跨团队沟通的岗位。`;
+  }
+
+  if (includesAny(compact, ["项目", "作品", "案例", "portfolio", "project"])) {
+    return `核心项目包括：${projectTitles}。其中 Domino 与神秘旅途偏实时多人游戏和工程实现，GameRun 偏产品原型/交互设计，Jardin d'Asie 偏信息整理与运营支持。`;
+  }
+
+  if (includesAny(compact, ["domino", "多米诺"])) {
+    return "Domino 项目是多人联机桌游开发，重点包括 React/TypeScript 前端、Socket.IO 实时同步、房间流程、响应式棋盘、拖拽交互和移动端适配。";
+  }
+
+  if (includesAny(compact, ["神秘", "雾夜", "mjweb", "列车", "旅途"])) {
+    return "神秘旅途 / 雾夜列车项目是隐藏身份多人联机桌游，采用 React + TypeScript + Vite 客户端和 Node.js + Express + Socket.IO 服务端，核心思路是服务端权威 GameState。";
+  }
+
+  if (includesAny(compact, ["gamerun", "游戏", "figma", "原型"])) {
+    return "GameRun 是游戏平台产品设计项目，覆盖 personas、任务分析、低保真线框、高保真 Figma 原型、交互流和用户测试迭代。";
+  }
+
+  if (includesAny(compact, ["jardin", "餐厅", "运营", "信息整理"])) {
+    return "Jardin d'Asie 项目体现信息整理和运营支持能力，负责菜单、官网公告、营业时间、预约入口和 Google 商家资料的一致性维护。";
+  }
+
+  if (includesAny(compact, ["技能", "技术", "栈", "工具", "skill", "tech", "stack"])) {
+    return skillSummary;
+  }
+
+  if (includesAny(compact, ["语言", "英语", "法语", "中文", "language"])) {
+    return "语言能力：中文母语，英语流利 / IELTS 6.0，法语 B2；适合中英法多语言沟通和跨文化团队协作。";
+  }
+
+  if (includesAny(compact, ["教育", "学校", "学历", "大学", "专业", "education", "degree"])) {
+    return `${profile.englishName} 是法国斯特拉斯堡大学计算机科学本科生，系统学习算法、数据库、软件工程与产品设计相关课程。`;
+  }
+
+  if (includesAny(compact, ["经验", "经历", "experience"])) {
+    return `经历包括${experiences.map((item) => `${item.company}的${item.title}`).join("，")}，覆盖数据管理、信息整理、内容维护和运营支持。`;
+  }
+
+  if (includesAny(compact, ["优势", "亮点", "为什么", "strength"])) {
+    return profile.strengths.join("；");
+  }
+
+  if (includesAny(compact, ["到岗", "入职", "时间", "availability", "available"])) {
+    return "网站没有公开具体到岗日期，建议通过邮箱确认；目前页面展示的方向是实习、项目协作、产品/前端/项目管理相关机会。";
+  }
+
+  return `这个问题网站没有完整公开。可以继续问“求职方向、核心项目、技术栈、语言能力、联系方式”，或直接通过 ${profile.email} 联系确认。`;
+};
+
 function App() {
   const appRef = useRef<HTMLElement>(null);
   const projectSectionRef = useRef<HTMLElement>(null);
   const projectRailRef = useRef<HTMLDivElement>(null);
   const insightCloseRef = useRef<HTMLButtonElement>(null);
+  const hrMessagesRef = useRef<HTMLDivElement>(null);
   const preloadedImagesRef = useRef<HTMLImageElement[]>([]);
+  const projectSwitchTimelineRef = useRef<gsap.core.Timeline | null>(null);
   const [welcomeReady, setWelcomeReady] = useState(false);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
@@ -47,6 +130,15 @@ function App() {
     projectIndex: number;
     galleryIndex: number;
   } | null>(null);
+  const [hrChatOpen, setHrChatOpen] = useState(false);
+  const [hrInput, setHrInput] = useState("");
+  const [hrMessages, setHrMessages] = useState<HrChatMessage[]>([
+    {
+      id: 1,
+      role: "bot",
+      text: "你好，我可以快速回答求职方向、项目经历、技术栈、语言能力和联系方式等 HR 常见问题。",
+    },
+  ]);
   const activeProject = projects[activeProjectIndex];
   const activeCaseStudy = activeProject.caseStudy;
   const activeCover = activeCaseStudy?.cover ?? activeCaseStudy?.gallery[0];
@@ -78,13 +170,180 @@ function App() {
       ? lightboxGallery[lightboxImage.galleryIndex]
       : null;
 
+  const getProjectDomTargets = () => {
+    const root = projectSectionRef.current ?? document;
+    const select = (selector: string) => Array.from(root.querySelectorAll<HTMLElement>(selector));
+
+    return {
+      bg: select(".project-showcase-bg"),
+      copyItems: select(
+        ".project-meta-line, .project-stage-copy > h2, .project-stage-copy > p, .project-stage-copy > strong",
+      ),
+      insightCards: select(".project-insight-group"),
+      lowerItems: select(".project-gallery-strip, .project-stage-actions"),
+      railItems: select(".project-rail-heading, .project-count"),
+      projectCards: select(".project-showcase .project-card"),
+      showcase: select(".project-showcase"),
+    };
+  };
+
+  const animateProjectSwitchIn = () => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const { bg, copyItems, insightCards, lowerItems, projectCards } = getProjectDomTargets();
+    const activeCard = projectCards.find((card) => card.classList.contains("is-active"));
+
+    gsap.killTweensOf([...bg, ...copyItems, ...insightCards, ...lowerItems, activeCard].filter(Boolean));
+
+    if (reduceMotion) {
+      gsap.set([...bg, ...copyItems, ...insightCards, ...lowerItems], {
+        autoAlpha: 1,
+        clearProps: "filter,transform",
+      });
+      return;
+    }
+
+    gsap
+      .timeline({ defaults: { ease: "power3.out" } })
+      .fromTo(
+        bg,
+        { filter: "blur(12px) saturate(0.72)", scale: 1.075 },
+        {
+          clearProps: "filter,scale",
+          duration: 0.72,
+          filter: "blur(0px) saturate(0.92) contrast(1.04)",
+          scale: 1.02,
+        },
+        0,
+      )
+      .fromTo(
+        copyItems,
+        { autoAlpha: 0, filter: "blur(6px)", x: -44, y: 16 },
+        {
+          autoAlpha: 1,
+          clearProps: "filter,transform",
+          duration: 0.52,
+          filter: "blur(0px)",
+          stagger: 0.045,
+          x: 0,
+          y: 0,
+        },
+        0.06,
+      )
+      .fromTo(
+        insightCards,
+        {
+          autoAlpha: 0,
+          rotate: (index) => [-2, 1, 2][index % 3],
+          x: (index) => [-58, 0, 58][index % 3],
+          y: (index) => [36, 58, 36][index % 3],
+        },
+        {
+          autoAlpha: 1,
+          clearProps: "transform",
+          duration: 0.58,
+          rotate: 0,
+          stagger: 0.055,
+          x: 0,
+          y: 0,
+        },
+        0.16,
+      )
+      .fromTo(
+        lowerItems,
+        { autoAlpha: 0, filter: "blur(5px)", y: 34 },
+        {
+          autoAlpha: 1,
+          clearProps: "filter,transform",
+          duration: 0.5,
+          filter: "blur(0px)",
+          stagger: 0.06,
+          y: 0,
+        },
+        0.24,
+      )
+      .fromTo(
+        activeCard ?? [],
+        { scale: 0.96 },
+        { clearProps: "transform", duration: 0.46, scale: 1.06 },
+        0.18,
+      );
+  };
+
   const handleProjectSelect = (index: number) => {
-    setActiveProjectIndex(index);
-    setActiveGalleryIndex(0);
-    setActiveInsightLabel(null);
+    if (index === activeProjectIndex) {
+      projectSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const { bg, copyItems, insightCards, lowerItems } = getProjectDomTargets();
+
+    projectSwitchTimelineRef.current?.kill();
     window.setTimeout(() => {
       projectSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 0);
+
+    const applyNextProject = () => {
+      setActiveProjectIndex(index);
+      setActiveGalleryIndex(0);
+      setActiveInsightLabel(null);
+      window.requestAnimationFrame(() => animateProjectSwitchIn());
+    };
+
+    if (reduceMotion) {
+      applyNextProject();
+      return;
+    }
+
+    projectSwitchTimelineRef.current = gsap
+      .timeline({
+        defaults: { ease: "power2.in" },
+        onComplete: applyNextProject,
+      })
+      .to(
+        copyItems,
+        {
+          autoAlpha: 0,
+          duration: 0.26,
+          filter: "blur(5px)",
+          stagger: 0.018,
+          x: -58,
+          y: -12,
+        },
+        0,
+      )
+      .to(
+        insightCards,
+        {
+          autoAlpha: 0,
+          duration: 0.28,
+          rotate: (cardIndex) => [-3, 2, 3][cardIndex % 3],
+          stagger: 0.026,
+          x: (cardIndex) => [-86, 0, 86][cardIndex % 3],
+          y: (cardIndex) => [28, 58, 28][cardIndex % 3],
+        },
+        0.04,
+      )
+      .to(
+        lowerItems,
+        {
+          autoAlpha: 0,
+          duration: 0.24,
+          filter: "blur(4px)",
+          stagger: 0.035,
+          y: 42,
+        },
+        0.05,
+      )
+      .to(
+        bg,
+        {
+          duration: 0.34,
+          filter: "blur(10px) saturate(0.72)",
+          scale: 1.065,
+        },
+        0,
+      );
   };
 
   const scrollProjectRail = (direction: -1 | 1) => {
@@ -107,6 +366,27 @@ function App() {
     event.preventDefault();
     window.history.pushState(null, "", href);
     document.querySelector(href)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const askHrQuestion = (rawQuestion: string) => {
+    const question = rawQuestion.trim();
+    if (!question) return;
+
+    setHrMessages((messages) => {
+      const baseId = Date.now() + messages.length;
+      return [
+        ...messages,
+        { id: baseId, role: "user", text: question },
+        { id: baseId + 1, role: "bot", text: buildHrAnswer(question) },
+      ];
+    });
+    setHrInput("");
+    setHrChatOpen(true);
+  };
+
+  const handleHrSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    askHrQuestion(hrInput);
   };
 
   useGSAP(
@@ -196,29 +476,19 @@ function App() {
         },
       });
 
-      const projectCopyItems = gsap.utils.toArray<HTMLElement>(
-        ".project-meta-line, .project-stage-copy h2, .project-stage-copy p, .project-stage-copy strong",
-      );
-      const projectInsightCards = gsap.utils.toArray<HTMLElement>(".project-insight-group");
-      const projectLowerItems = gsap.utils.toArray<HTMLElement>(
-        ".project-gallery-strip, .project-stage-actions",
-      );
-      const projectRailItems = gsap.utils.toArray<HTMLElement>(
-        ".project-rail-heading, .project-count",
-      );
-      const projectCards = gsap.utils.toArray<HTMLElement>(".project-showcase .project-card");
       const cardFlyDirections = [
         { x: 170, y: -92 },
         { x: 210, y: 0 },
         { x: 170, y: 94 },
         { x: 96, y: 128 },
       ];
+      const initialProjectTargets = getProjectDomTargets();
 
-      gsap.set(projectCopyItems, { autoAlpha: 0, x: -72, y: 20 });
-      gsap.set(projectInsightCards, { autoAlpha: 0 });
-      gsap.set(projectLowerItems, { autoAlpha: 0 });
-      gsap.set(projectRailItems, { autoAlpha: 0, x: 72, y: -28 });
-      gsap.set(projectCards, {
+      gsap.set(initialProjectTargets.copyItems, { autoAlpha: 0, x: -72, y: 20 });
+      gsap.set(initialProjectTargets.insightCards, { autoAlpha: 0 });
+      gsap.set(initialProjectTargets.lowerItems, { autoAlpha: 0 });
+      gsap.set(initialProjectTargets.railItems, { autoAlpha: 0, x: 72, y: -28 });
+      gsap.set(initialProjectTargets.projectCards, {
         "--card-fly-x": (index: number) =>
           `${cardFlyDirections[index % cardFlyDirections.length].x}px`,
         "--card-fly-y": (index: number) =>
@@ -228,20 +498,30 @@ function App() {
       gsap.set(".project-showcase-bg", { filter: "blur(10px) saturate(0.72)", scale: 1.1 });
 
       const flyProjectIn = () => {
-        gsap.killTweensOf([
-          ".project-showcase-bg",
-          ".project-showcase",
-          projectCopyItems,
-          projectInsightCards,
-          projectLowerItems,
-          projectRailItems,
+        const {
+          bg,
+          copyItems,
+          insightCards,
+          lowerItems,
           projectCards,
+          railItems,
+          showcase,
+        } = getProjectDomTargets();
+
+        gsap.killTweensOf([
+          ...bg,
+          ...showcase,
+          ...copyItems,
+          ...insightCards,
+          ...lowerItems,
+          ...railItems,
+          ...projectCards,
         ]);
 
         gsap
           .timeline({ defaults: { ease: "power3.out" } })
           .to(
-            ".project-showcase-bg",
+            bg,
             {
               clearProps: "filter,scale",
               duration: 1.15,
@@ -251,13 +531,13 @@ function App() {
             0,
           )
           .fromTo(
-            ".project-showcase",
+            showcase,
             { clipPath: "inset(8% 0 8% 0 round 0px)" },
             { clipPath: "inset(0% 0 0% 0 round 0px)", duration: 0.78 },
             0,
           )
           .to(
-            projectCopyItems,
+            copyItems,
             {
               autoAlpha: 1,
               duration: 0.68,
@@ -268,7 +548,7 @@ function App() {
             0.12,
           )
           .fromTo(
-            projectInsightCards,
+            insightCards,
             {
               autoAlpha: 0,
               rotate: (index) => [-4, 2, 4][index % 3],
@@ -287,7 +567,7 @@ function App() {
             0.24,
           )
           .fromTo(
-            projectLowerItems,
+            lowerItems,
             {
               autoAlpha: 0,
               x: (index) => (index === 0 ? -86 : 86),
@@ -304,7 +584,7 @@ function App() {
             0.34,
           )
           .to(
-            projectRailItems,
+            railItems,
             {
               autoAlpha: 1,
               clearProps: "transform",
@@ -330,21 +610,30 @@ function App() {
 
       const flyProjectOut = (direction: 1 | -1) => {
         const verticalLift = direction > 0 ? 120 : -120;
+        const {
+          bg,
+          copyItems,
+          insightCards,
+          lowerItems,
+          projectCards,
+          railItems,
+          showcase,
+        } = getProjectDomTargets();
 
         gsap.killTweensOf([
-          ".project-showcase-bg",
-          ".project-showcase",
-          projectCopyItems,
-          projectInsightCards,
-          projectLowerItems,
-          projectRailItems,
-          projectCards,
+          ...bg,
+          ...showcase,
+          ...copyItems,
+          ...insightCards,
+          ...lowerItems,
+          ...railItems,
+          ...projectCards,
         ]);
 
         gsap
           .timeline({ defaults: { ease: "power2.in" } })
           .to(
-            projectCopyItems,
+            copyItems,
             {
               autoAlpha: 0,
               duration: 0.42,
@@ -355,7 +644,7 @@ function App() {
             0,
           )
           .to(
-            projectInsightCards,
+            insightCards,
             {
               autoAlpha: 0,
               duration: 0.46,
@@ -367,7 +656,7 @@ function App() {
             0.04,
           )
           .to(
-            projectLowerItems,
+            lowerItems,
             {
               autoAlpha: 0,
               duration: 0.42,
@@ -378,7 +667,7 @@ function App() {
             0.08,
           )
           .to(
-            projectRailItems,
+            railItems,
             {
               autoAlpha: 0,
               duration: 0.38,
@@ -402,7 +691,7 @@ function App() {
             0.06,
           )
           .to(
-            ".project-showcase-bg",
+            bg,
             {
               duration: 0.54,
               filter: "blur(8px) saturate(0.7)",
@@ -467,6 +756,12 @@ function App() {
 
     return () => window.clearTimeout(welcomeTimer);
   }, []);
+
+  useEffect(() => {
+    const messages = hrMessagesRef.current;
+    if (!hrChatOpen || !messages) return;
+    messages.scrollTo({ behavior: "smooth", top: messages.scrollHeight });
+  }, [hrChatOpen, hrMessages]);
 
   useEffect(() => {
     const preloadImages = () => {
@@ -1138,6 +1433,75 @@ function App() {
           </span>
         </div>
       </section>
+
+      <aside
+        className={`hr-assistant ${hrChatOpen ? "is-open" : ""}`}
+        aria-label="HR 自动问答助手"
+      >
+        {hrChatOpen ? (
+          <section className="hr-chat-panel" aria-live="polite">
+            <header className="hr-chat-header">
+              <div>
+                <span aria-hidden="true">
+                  <Bot size={20} />
+                </span>
+                <div>
+                  <strong>HR AI</strong>
+                  <p>Renyu Zhang · Portfolio Assistant</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setHrChatOpen(false)}
+                aria-label="关闭 HR 问答助手"
+              >
+                <X size={18} aria-hidden="true" />
+              </button>
+            </header>
+
+            <div className="hr-chat-messages" ref={hrMessagesRef}>
+              {hrMessages.map((message) => (
+                <div className={`hr-message is-${message.role}`} key={message.id}>
+                  <p>{message.text}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="hr-chat-prompts" aria-label="快捷问题">
+              {hrQuickQuestions.map((question) => (
+                <button type="button" key={question} onClick={() => askHrQuestion(question)}>
+                  {question}
+                </button>
+              ))}
+            </div>
+
+            <form className="hr-chat-form" onSubmit={handleHrSubmit}>
+              <input
+                value={hrInput}
+                onChange={(event) => setHrInput(event.target.value)}
+                placeholder="问一个 HR 常见问题"
+                aria-label="输入 HR 问题"
+              />
+              <button type="submit" aria-label="发送问题">
+                <SendHorizontal size={18} aria-hidden="true" />
+              </button>
+            </form>
+          </section>
+        ) : null}
+
+        <button
+          className="hr-chat-toggle"
+          type="button"
+          onClick={() => setHrChatOpen((open) => !open)}
+          aria-label={hrChatOpen ? "收起 HR 问答助手" : "打开 HR 问答助手"}
+        >
+          {hrChatOpen ? (
+            <X size={22} aria-hidden="true" />
+          ) : (
+            <MessageCircle size={22} aria-hidden="true" />
+          )}
+        </button>
+      </aside>
     </main>
   );
 }
