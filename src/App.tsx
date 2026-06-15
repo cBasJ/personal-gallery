@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -14,7 +14,6 @@ import {
   Linkedin,
   Mail,
   MapPin,
-  Network,
   Phone,
   Sparkles,
   X,
@@ -36,20 +35,21 @@ const navItems = [
 
 function App() {
   const appRef = useRef<HTMLElement>(null);
+  const projectSectionRef = useRef<HTMLElement>(null);
   const projectRailRef = useRef<HTMLDivElement>(null);
-  const caseStudyRef = useRef<HTMLDivElement>(null);
+  const insightCloseRef = useRef<HTMLButtonElement>(null);
   const preloadedImagesRef = useRef<HTMLImageElement[]>([]);
   const [welcomeReady, setWelcomeReady] = useState(false);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
+  const [activeInsightLabel, setActiveInsightLabel] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<{
     projectIndex: number;
     galleryIndex: number;
   } | null>(null);
   const activeProject = projects[activeProjectIndex];
   const activeCaseStudy = activeProject.caseStudy;
-  const activeGallery = activeCaseStudy?.gallery[activeGalleryIndex];
-  const activeCover = activeCaseStudy?.gallery[0] ?? activeGallery;
+  const activeCover = activeCaseStudy?.cover ?? activeCaseStudy?.gallery[0];
   const projectInsightGroups = activeCaseStudy
     ? [
         {
@@ -69,6 +69,8 @@ function App() {
         },
       ]
     : [];
+  const activeInsight = projectInsightGroups.find((group) => group.label === activeInsightLabel);
+  const ActiveInsightIcon = activeInsight?.icon;
   const lightboxProject = lightboxImage ? projects[lightboxImage.projectIndex] : null;
   const lightboxGallery = lightboxProject?.caseStudy?.gallery ?? [];
   const currentLightboxImage =
@@ -79,14 +81,7 @@ function App() {
   const handleProjectSelect = (index: number) => {
     setActiveProjectIndex(index);
     setActiveGalleryIndex(0);
-  };
-
-  const handleCaseStudySwitch = (index: number) => {
-    setActiveProjectIndex(index);
-    setActiveGalleryIndex(0);
-    window.setTimeout(() => {
-      caseStudyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 0);
+    setActiveInsightLabel(null);
   };
 
   const scrollProjectRail = (direction: -1 | 1) => {
@@ -102,6 +97,13 @@ function App() {
 
   const enterPortfolio = () => {
     document.querySelector("#profile")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleNavClick = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href !== "#work") return;
+    event.preventDefault();
+    window.history.pushState(null, "", href);
+    document.querySelector(href)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   useGSAP(
@@ -140,6 +142,45 @@ function App() {
         y: -22,
       });
 
+      const cleanupFns: Array<() => void> = [];
+      const header = document.querySelector<HTMLElement>(".site-header");
+      if (header) {
+        const headerTween = gsap.to(header, {
+          autoAlpha: 0,
+          duration: 0.22,
+          ease: "power2.out",
+          paused: true,
+          yPercent: -115,
+        });
+        let previousScrollY = window.scrollY;
+        let headerHidden = false;
+        const showHeader = () => {
+          if (!headerHidden) return;
+          headerTween.reverse();
+          headerHidden = false;
+        };
+        const hideHeader = () => {
+          if (headerHidden) return;
+          headerTween.play();
+          headerHidden = true;
+        };
+        const updateHeader = () => {
+          const currentScrollY = window.scrollY;
+          const delta = currentScrollY - previousScrollY;
+
+          if (header.contains(document.activeElement) || currentScrollY < 80 || delta < -3) {
+            showHeader();
+          } else if (delta > 4 && currentScrollY > 120) {
+            hideHeader();
+          }
+
+          previousScrollY = currentScrollY;
+        };
+
+        window.addEventListener("scroll", updateHeader, { passive: true });
+        cleanupFns.push(() => window.removeEventListener("scroll", updateHeader));
+      }
+
       gsap.to(".hero-image", {
         ease: "none",
         scale: 1.07,
@@ -150,6 +191,232 @@ function App() {
           start: "top top",
           trigger: ".hero",
         },
+      });
+
+      const projectCopyItems = gsap.utils.toArray<HTMLElement>(
+        ".project-meta-line, .project-stage-copy h2, .project-stage-copy p, .project-stage-copy strong",
+      );
+      const projectInsightCards = gsap.utils.toArray<HTMLElement>(".project-insight-group");
+      const projectLowerItems = gsap.utils.toArray<HTMLElement>(
+        ".project-gallery-strip, .project-stage-actions",
+      );
+      const projectRailItems = gsap.utils.toArray<HTMLElement>(
+        ".project-rail-heading, .project-count",
+      );
+      const projectCards = gsap.utils.toArray<HTMLElement>(".project-showcase .project-card");
+      const cardFlyDirections = [
+        { x: 170, y: -92 },
+        { x: 210, y: 0 },
+        { x: 170, y: 94 },
+        { x: 96, y: 128 },
+      ];
+
+      gsap.set(projectCopyItems, { autoAlpha: 0, x: -72, y: 20 });
+      gsap.set(projectInsightCards, { autoAlpha: 0 });
+      gsap.set(projectLowerItems, { autoAlpha: 0 });
+      gsap.set(projectRailItems, { autoAlpha: 0, x: 72, y: -28 });
+      gsap.set(projectCards, {
+        "--card-fly-x": (index: number) =>
+          `${cardFlyDirections[index % cardFlyDirections.length].x}px`,
+        "--card-fly-y": (index: number) =>
+          `${cardFlyDirections[index % cardFlyDirections.length].y}px`,
+        autoAlpha: 0,
+      });
+      gsap.set(".project-showcase-bg", { filter: "blur(10px) saturate(0.72)", scale: 1.1 });
+
+      const flyProjectIn = () => {
+        gsap.killTweensOf([
+          ".project-showcase-bg",
+          ".project-showcase",
+          projectCopyItems,
+          projectInsightCards,
+          projectLowerItems,
+          projectRailItems,
+          projectCards,
+        ]);
+
+        gsap
+          .timeline({ defaults: { ease: "power3.out" } })
+          .to(
+            ".project-showcase-bg",
+            {
+              clearProps: "filter,scale",
+              duration: 1.15,
+              filter: "blur(0px) saturate(0.9) contrast(1.04)",
+              scale: 1.02,
+            },
+            0,
+          )
+          .fromTo(
+            ".project-showcase",
+            { clipPath: "inset(8% 0 8% 0 round 0px)" },
+            { clipPath: "inset(0% 0 0% 0 round 0px)", duration: 0.78 },
+            0,
+          )
+          .to(
+            projectCopyItems,
+            {
+              autoAlpha: 1,
+              duration: 0.68,
+              stagger: 0.052,
+              x: 0,
+              y: 0,
+            },
+            0.12,
+          )
+          .fromTo(
+            projectInsightCards,
+            {
+              autoAlpha: 0,
+              rotate: (index) => [-4, 2, 4][index % 3],
+              x: (index) => [-128, 0, 128][index % 3],
+              y: (index) => [18, 96, 18][index % 3],
+            },
+            {
+              autoAlpha: 1,
+              clearProps: "transform",
+              duration: 0.82,
+              rotate: 0,
+              stagger: 0.07,
+              x: 0,
+              y: 0,
+            },
+            0.24,
+          )
+          .fromTo(
+            projectLowerItems,
+            {
+              autoAlpha: 0,
+              x: (index) => (index === 0 ? -86 : 86),
+              y: 88,
+            },
+            {
+              autoAlpha: 1,
+              clearProps: "transform",
+              duration: 0.72,
+              stagger: 0.08,
+              x: 0,
+              y: 0,
+            },
+            0.34,
+          )
+          .to(
+            projectRailItems,
+            {
+              autoAlpha: 1,
+              clearProps: "transform",
+              duration: 0.72,
+              stagger: 0.08,
+              x: 0,
+              y: 0,
+            },
+            0.2,
+          )
+          .to(
+            projectCards,
+            {
+              "--card-fly-x": "0px",
+              "--card-fly-y": "0px",
+              autoAlpha: 1,
+              duration: 0.82,
+              stagger: 0.065,
+            },
+            0.32,
+          );
+      };
+
+      const flyProjectOut = (direction: 1 | -1) => {
+        const verticalLift = direction > 0 ? 120 : -120;
+
+        gsap.killTweensOf([
+          ".project-showcase-bg",
+          ".project-showcase",
+          projectCopyItems,
+          projectInsightCards,
+          projectLowerItems,
+          projectRailItems,
+          projectCards,
+        ]);
+
+        gsap
+          .timeline({ defaults: { ease: "power2.in" } })
+          .to(
+            projectCopyItems,
+            {
+              autoAlpha: 0,
+              duration: 0.42,
+              stagger: 0.025,
+              x: -116,
+              y: -22,
+            },
+            0,
+          )
+          .to(
+            projectInsightCards,
+            {
+              autoAlpha: 0,
+              duration: 0.46,
+              rotate: (index) => [-5, 3, 5][index % 3],
+              stagger: 0.035,
+              x: (index) => [-170, 0, 170][index % 3],
+              y: (index) => [verticalLift * 0.45, verticalLift, verticalLift * 0.45][index % 3],
+            },
+            0.04,
+          )
+          .to(
+            projectLowerItems,
+            {
+              autoAlpha: 0,
+              duration: 0.42,
+              stagger: 0.04,
+              x: (index) => (index === 0 ? -120 : 120),
+              y: direction > 0 ? 150 : -100,
+            },
+            0.08,
+          )
+          .to(
+            projectRailItems,
+            {
+              autoAlpha: 0,
+              duration: 0.38,
+              stagger: 0.035,
+              x: 114,
+              y: direction > 0 ? -62 : 62,
+            },
+            0.02,
+          )
+          .to(
+            projectCards,
+            {
+              "--card-fly-x": (index: number) =>
+                `${cardFlyDirections[index % cardFlyDirections.length].x * 1.08}px`,
+              "--card-fly-y": (index: number) =>
+                `${cardFlyDirections[index % cardFlyDirections.length].y + verticalLift}px`,
+              autoAlpha: 0,
+              duration: 0.52,
+              stagger: 0.04,
+            },
+            0.06,
+          )
+          .to(
+            ".project-showcase-bg",
+            {
+              duration: 0.54,
+              filter: "blur(8px) saturate(0.7)",
+              scale: 1.08,
+            },
+            0,
+          );
+      };
+
+      ScrollTrigger.create({
+        end: "top+=8% top",
+        onEnter: flyProjectIn,
+        onEnterBack: flyProjectIn,
+        onLeave: () => flyProjectOut(1),
+        onLeaveBack: () => flyProjectOut(-1),
+        start: "top 72%",
+        trigger: ".project-section",
       });
 
       gsap.to(".welcome-background span", {
@@ -164,9 +431,9 @@ function App() {
       });
 
       const spotlitItems = gsap.utils.toArray<HTMLElement>(
-        ".project-card, .strength-item, .skill-card, .education-card, .timeline-item > div:last-child, .detail-group, .architecture-list",
+        ".project-card, .strength-item, .skill-card, .education-card, .timeline-item > div:last-child",
       );
-      const cleanups = spotlitItems.map((item) => {
+      const spotlightCleanups = spotlitItems.map((item) => {
         const updateSpotlight = (event: PointerEvent) => {
           const rect = item.getBoundingClientRect();
           item.style.setProperty("--mx", `${event.clientX - rect.left}px`);
@@ -177,51 +444,11 @@ function App() {
         return () => item.removeEventListener("pointermove", updateSpotlight);
       });
 
-      return () => cleanups.forEach((cleanup) => cleanup());
+      cleanupFns.push(...spotlightCleanups);
+
+      return () => cleanupFns.forEach((cleanup) => cleanup());
     },
     { scope: appRef },
-  );
-
-  useGSAP(
-    () => {
-      if (!caseStudyRef.current) return;
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-      const elements = caseStudyRef.current.querySelectorAll<HTMLElement>(
-        ".case-study-heading, .detail-group, .case-study-media figure, .gallery-tabs, .architecture-list",
-      );
-
-      gsap.fromTo(
-        elements,
-        { autoAlpha: 0, y: 18 },
-        {
-          autoAlpha: 1,
-          duration: 0.54,
-          ease: "power3.out",
-          stagger: 0.055,
-          y: 0,
-        },
-      );
-    },
-    { dependencies: [activeProjectIndex], scope: caseStudyRef },
-  );
-
-  useGSAP(
-    () => {
-      if (!caseStudyRef.current) return;
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-      const image = caseStudyRef.current.querySelector<HTMLElement>(".gallery-preview img");
-      const caption = caseStudyRef.current.querySelector<HTMLElement>(".case-study-media figcaption");
-      if (!image) return;
-
-      gsap.fromTo(
-        [image, caption].filter(Boolean),
-        { autoAlpha: 0, scale: 1.025 },
-        { autoAlpha: 1, duration: 0.42, ease: "power2.out", scale: 1 },
-      );
-    },
-    { dependencies: [activeGalleryIndex, activeProjectIndex], scope: caseStudyRef },
   );
 
   useEffect(() => {
@@ -237,6 +464,9 @@ function App() {
       const sources = new Set<string>([heroImage, profile.photoUrl]);
 
       projects.forEach((project) => {
+        if (project.caseStudy?.cover) {
+          sources.add(project.caseStudy.cover.src);
+        }
         project.caseStudy?.gallery.forEach((image) => {
           sources.add(image.src);
         });
@@ -259,6 +489,70 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const projectSection = projectSectionRef.current;
+    const nextSection = document.querySelector<HTMLElement>("#experience");
+    if (!projectSection || !nextSection) return;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let previousScrollY = window.scrollY;
+    let lockUntil = 0;
+    let settledOnProject = Math.abs(window.scrollY - projectSection.offsetTop) < 12;
+
+    const scrollToY = (top: number) => {
+      lockUntil = window.performance.now() + (reduceMotion ? 80 : 780);
+      window.scrollTo({ behavior: reduceMotion ? "auto" : "smooth", top });
+    };
+
+    const handleProjectSnap = () => {
+      if (activeInsightLabel || lightboxImage) return;
+
+      const currentScrollY = window.scrollY;
+      const delta = currentScrollY - previousScrollY;
+      previousScrollY = currentScrollY;
+
+      if (window.performance.now() < lockUntil || Math.abs(delta) < 2) return;
+
+      const viewportHeight = window.innerHeight;
+      const projectTop = projectSection.offsetTop;
+      const projectHeight = projectSection.offsetHeight;
+      const nextTop = nextSection.offsetTop;
+      const projectDistance = currentScrollY - projectTop;
+
+      if (!settledOnProject) {
+        const enteringFromAbove =
+          delta > 0 &&
+          currentScrollY > projectTop - viewportHeight * 0.42 &&
+          currentScrollY < projectTop + viewportHeight * 0.18;
+        const enteringFromBelow =
+          delta < 0 &&
+          currentScrollY < projectTop + viewportHeight * 0.38 &&
+          currentScrollY > projectTop - viewportHeight * 0.12;
+
+        if (enteringFromAbove || enteringFromBelow) {
+          settledOnProject = true;
+          scrollToY(projectTop);
+        }
+        return;
+      }
+
+      if (Math.abs(projectDistance) < 14) return;
+
+      if (delta > 0 && projectDistance > viewportHeight * 0.2) {
+        settledOnProject = false;
+        scrollToY(nextTop);
+        return;
+      }
+
+      if (currentScrollY < projectTop - viewportHeight * 0.14 || projectDistance > projectHeight) {
+        settledOnProject = false;
+      }
+    };
+
+    window.addEventListener("scroll", handleProjectSnap, { passive: true });
+    return () => window.removeEventListener("scroll", handleProjectSnap);
+  }, [activeInsightLabel, lightboxImage]);
+
+  useEffect(() => {
     if (!lightboxImage) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -273,11 +567,32 @@ function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [lightboxImage, lightboxGallery.length]);
 
-  const openLightbox = () => {
-    if (!activeGallery) return;
+  useEffect(() => {
+    if (!activeInsightLabel) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.setTimeout(() => insightCloseRef.current?.focus(), 0);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveInsightLabel(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [activeInsightLabel]);
+
+  const openGalleryImage = (galleryIndex: number) => {
+    setActiveGalleryIndex(galleryIndex);
+    setActiveInsightLabel(null);
     setLightboxImage({
       projectIndex: activeProjectIndex,
-      galleryIndex: activeGalleryIndex,
+      galleryIndex,
     });
   };
 
@@ -305,7 +620,7 @@ function App() {
         </a>
         <nav>
           {navItems.map((item) => (
-            <a href={item.href} key={item.href}>
+            <a href={item.href} key={item.href} onClick={(event) => handleNavClick(event, item.href)}>
               {item.label}
             </a>
           ))}
@@ -438,7 +753,7 @@ function App() {
         </div>
       </section>
 
-      <section className="section project-section" id="work" data-reveal>
+      <section className="section project-section" id="work" data-reveal ref={projectSectionRef}>
         <div className="project-showcase">
           {activeCover ? (
             <img
@@ -473,21 +788,62 @@ function App() {
                   aria-label={`${activeProject.title} 的职责、功能和工程亮点`}
                 >
                   {projectInsightGroups.map(({ icon: Icon, items, label }) => (
-                    <section className="project-insight-group" key={label}>
-                      <h3>
+                    <button
+                      className="project-insight-group"
+                      key={label}
+                      type="button"
+                      onClick={() => setActiveInsightLabel(label)}
+                      aria-label={`查看${label}完整信息`}
+                    >
+                      <span className="project-insight-title">
                         <Icon size={16} aria-hidden="true" />
-                        {label}
-                      </h3>
-                      <ul>
+                        <span>{label}</span>
+                      </span>
+                      <span className="project-insight-list">
                         {items.slice(0, 3).map((item, index) => (
-                          <li key={item}>
-                            <span>{String(index + 1).padStart(2, "0")}</span>
-                            <p>{item}</p>
-                          </li>
+                          <span className="project-insight-row" key={item}>
+                            <span className="project-insight-index">
+                              {String(index + 1).padStart(2, "0")}
+                            </span>
+                            <span className="project-insight-text">{item}</span>
+                          </span>
                         ))}
-                      </ul>
-                    </section>
+                      </span>
+                    </button>
                   ))}
+                </div>
+              ) : null}
+              {activeCaseStudy?.gallery.length ? (
+                <div className="project-gallery-strip" aria-label={`${activeProject.title} 相册`}>
+                  <div className="project-gallery-label">
+                    <span>Gallery</span>
+                    <strong>项目相册</strong>
+                  </div>
+                  <div className="project-gallery-thumbs">
+                    {activeCaseStudy.gallery.slice(0, 4).map((image, index) => (
+                      <button
+                        className={`project-gallery-thumb ${
+                          index === activeGalleryIndex ? "is-active" : ""
+                        }`}
+                        key={image.src}
+                        type="button"
+                        onClick={() => openGalleryImage(index)}
+                        aria-label={`打开第 ${index + 1} 张项目图片：${image.caption}`}
+                      >
+                        <img src={image.src} alt={image.alt} decoding="async" loading="lazy" />
+                        <span>{String(index + 1).padStart(2, "0")}</span>
+                      </button>
+                    ))}
+                    {activeCaseStudy.gallery.length > 4 ? (
+                      <button
+                        className="project-gallery-more"
+                        type="button"
+                        onClick={() => openGalleryImage(0)}
+                      >
+                        查看全部 {activeCaseStudy.gallery.length}
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
               ) : null}
               <div className="project-stage-actions">
@@ -534,7 +890,7 @@ function App() {
 
             <div className="project-grid" ref={projectRailRef}>
               {projects.map((project, index) => {
-                const cover = project.caseStudy?.gallery[0];
+                const cover = project.caseStudy?.cover ?? project.caseStudy?.gallery[0];
                 return (
                   <article
                     className={`project-card ${index === activeProjectIndex ? "is-active" : ""}`}
@@ -574,127 +930,44 @@ function App() {
             <p className="project-count">{projects.length} projects · 2024–2026</p>
           </aside>
         </div>
-
-        {activeCaseStudy ? (
-          <div
-            className="case-study"
-            ref={caseStudyRef}
-            aria-label={`${activeProject.title} 详情`}
-            data-reveal
-          >
-            <div className="case-study-switcher" aria-label="快速切换项目">
-              {projects.map((project, index) => (
-                <button
-                  className={index === activeProjectIndex ? "is-active" : ""}
-                  key={project.title}
-                  type="button"
-                  onClick={() => handleCaseStudySwitch(index)}
-                  aria-label={`切换到${project.title}`}
-                  title={project.title}
-                >
-                  {index + 1}
-                </button>
-              ))}
-            </div>
-            <div className="case-study-copy">
-              <div className="case-study-heading">
-                <p className="section-kicker">Case Study</p>
-                <h3>{activeProject.title}</h3>
-                <p>{activeCaseStudy.context}</p>
-                {activeProject.link ? (
-                  <a className="case-study-link" href={activeProject.link.url}>
-                    {activeProject.link.label}
-                    <ArrowUpRight size={17} aria-hidden="true" />
-                  </a>
-                ) : null}
-              </div>
-
-              <div className="case-study-groups">
-                <div className="detail-group">
-                  <div className="detail-title">
-                    <Layers3 size={18} aria-hidden="true" />
-                    我的职责
-                  </div>
-                  <ul>
-                    {activeCaseStudy.contribution.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="detail-group">
-                  <div className="detail-title">
-                    <GalleryHorizontalEnd size={18} aria-hidden="true" />
-                    产品功能
-                  </div>
-                  <ul>
-                    {activeCaseStudy.features.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="detail-group">
-                  <div className="detail-title">
-                    <Code2 size={18} aria-hidden="true" />
-                    工程亮点
-                  </div>
-                  <ul>
-                    {activeCaseStudy.engineering.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className="case-study-media">
-              {activeGallery ? (
-                <figure>
-                  <button
-                    className="gallery-preview"
-                    type="button"
-                    onClick={openLightbox}
-                  >
-                    <img
-                      src={activeGallery.src}
-                      alt={activeGallery.alt}
-                      decoding="async"
-                    />
-                    <span>点击放大</span>
-                  </button>
-                  <figcaption>{activeGallery.caption}</figcaption>
-                </figure>
-              ) : null}
-
-              <div className="gallery-tabs" aria-label="项目截图">
-                {activeCaseStudy.gallery.map((image, index) => (
-                  <button
-                    className={index === activeGalleryIndex ? "is-active" : ""}
-                    key={image.src}
-                    type="button"
-                    onClick={() => setActiveGalleryIndex(index)}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
-              </div>
-
-              <div className="architecture-list">
-                <div className="detail-title">
-                  <Network size={18} aria-hidden="true" />
-                  技术架构
-                </div>
-                <div>
-                  {activeCaseStudy.architecture.map((item) => (
-                    <span key={item}>{item}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : null}
       </section>
+
+      {activeInsight && ActiveInsightIcon ? (
+        <div
+          className="insight-dialog-shell"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="insight-dialog-title"
+          onClick={() => setActiveInsightLabel(null)}
+        >
+          <div className="insight-dialog" onClick={(event) => event.stopPropagation()}>
+            <button
+              className="insight-dialog-close"
+              type="button"
+              ref={insightCloseRef}
+              onClick={() => setActiveInsightLabel(null)}
+              aria-label="关闭详情窗口"
+            >
+              <X size={22} aria-hidden="true" />
+            </button>
+            <div className="insight-dialog-heading">
+              <p>{activeProject.title}</p>
+              <h2 id="insight-dialog-title">
+                <ActiveInsightIcon size={20} aria-hidden="true" />
+                {activeInsight.label}
+              </h2>
+            </div>
+            <ol className="insight-dialog-list">
+              {activeInsight.items.map((item, index) => (
+                <li key={item}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <p>{item}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      ) : null}
 
       {currentLightboxImage && lightboxImage ? (
         <div
