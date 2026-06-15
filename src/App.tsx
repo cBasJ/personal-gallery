@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { useGSAP } from "@gsap/react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   ArrowUpRight,
   BriefcaseBusiness,
@@ -21,6 +24,8 @@ import heroImage from "./assets/hero-workspace.webp";
 import { education, experiences, profile, projects, skillGroups } from "./profile";
 import SplitText from "./SplitText";
 
+gsap.registerPlugin(ScrollTrigger, useGSAP);
+
 const navItems = [
   { href: "#work", label: "项目" },
   { href: "#experience", label: "经历" },
@@ -30,6 +35,7 @@ const navItems = [
 ];
 
 function App() {
+  const appRef = useRef<HTMLElement>(null);
   const projectRailRef = useRef<HTMLDivElement>(null);
   const caseStudyRef = useRef<HTMLDivElement>(null);
   const preloadedImagesRef = useRef<HTMLImageElement[]>([]);
@@ -76,29 +82,125 @@ function App() {
     document.querySelector("#profile")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(() => {
-    const revealItems = document.querySelectorAll<HTMLElement>("[data-reveal]");
+  useGSAP(
+    () => {
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const revealItems = gsap.utils.toArray<HTMLElement>("[data-reveal]");
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      revealItems.forEach((item) => item.classList.add("is-visible"));
-      return;
-    }
+      if (reduceMotion) {
+        revealItems.forEach((item) => item.classList.add("is-visible"));
+        return;
+      }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { rootMargin: "0px 0px -12% 0px", threshold: 0.16 },
-    );
+      gsap.set(revealItems, { autoAlpha: 0, filter: "blur(8px)", y: 34 });
 
-    revealItems.forEach((item) => observer.observe(item));
-    return () => observer.disconnect();
-  }, []);
+      ScrollTrigger.batch(revealItems, {
+        once: true,
+        start: "top 84%",
+        onEnter: (elements) => {
+          elements.forEach((item) => item.classList.add("is-visible"));
+          gsap.to(elements, {
+            autoAlpha: 1,
+            clearProps: "filter",
+            duration: 0.82,
+            ease: "power3.out",
+            filter: "blur(0px)",
+            stagger: 0.08,
+            y: 0,
+          });
+        },
+      });
+
+      gsap.from(".site-header", {
+        autoAlpha: 0,
+        duration: 0.72,
+        ease: "power3.out",
+        y: -22,
+      });
+
+      gsap.to(".hero-image", {
+        ease: "none",
+        scale: 1.07,
+        yPercent: 8,
+        scrollTrigger: {
+          end: "bottom top",
+          scrub: 0.8,
+          start: "top top",
+          trigger: ".hero",
+        },
+      });
+
+      gsap.to(".welcome-background span", {
+        duration: 5.6,
+        ease: "sine.inOut",
+        repeat: -1,
+        rotate: "+=3",
+        stagger: 0.35,
+        x: "random(-14, 14, 1)",
+        y: "random(-10, 10, 1)",
+        yoyo: true,
+      });
+
+      const spotlitItems = gsap.utils.toArray<HTMLElement>(
+        ".project-card, .strength-item, .skill-card, .education-card, .timeline-item > div:last-child, .detail-group, .architecture-list",
+      );
+      const cleanups = spotlitItems.map((item) => {
+        const updateSpotlight = (event: PointerEvent) => {
+          const rect = item.getBoundingClientRect();
+          item.style.setProperty("--mx", `${event.clientX - rect.left}px`);
+          item.style.setProperty("--my", `${event.clientY - rect.top}px`);
+        };
+
+        item.addEventListener("pointermove", updateSpotlight);
+        return () => item.removeEventListener("pointermove", updateSpotlight);
+      });
+
+      return () => cleanups.forEach((cleanup) => cleanup());
+    },
+    { scope: appRef },
+  );
+
+  useGSAP(
+    () => {
+      if (!caseStudyRef.current) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+      const elements = caseStudyRef.current.querySelectorAll<HTMLElement>(
+        ".case-study-heading, .detail-group, .case-study-media figure, .gallery-tabs, .architecture-list",
+      );
+
+      gsap.fromTo(
+        elements,
+        { autoAlpha: 0, y: 18 },
+        {
+          autoAlpha: 1,
+          duration: 0.54,
+          ease: "power3.out",
+          stagger: 0.055,
+          y: 0,
+        },
+      );
+    },
+    { dependencies: [activeProjectIndex], scope: caseStudyRef },
+  );
+
+  useGSAP(
+    () => {
+      if (!caseStudyRef.current) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+      const image = caseStudyRef.current.querySelector<HTMLElement>(".gallery-preview img");
+      const caption = caseStudyRef.current.querySelector<HTMLElement>(".case-study-media figcaption");
+      if (!image) return;
+
+      gsap.fromTo(
+        [image, caption].filter(Boolean),
+        { autoAlpha: 0, scale: 1.025 },
+        { autoAlpha: 1, duration: 0.42, ease: "power2.out", scale: 1 },
+      );
+    },
+    { dependencies: [activeGalleryIndex, activeProjectIndex], scope: caseStudyRef },
+  );
 
   useEffect(() => {
     const welcomeTimer = window.setTimeout(() => {
@@ -170,7 +272,10 @@ function App() {
   };
 
   return (
-    <main className="app-shell">
+    <main className="app-shell" ref={appRef}>
+      <a className="skip-link" href="#profile">
+        跳到主要内容
+      </a>
       <header className="site-header" aria-label="主导航">
         <a className="brand" href="#top" aria-label={`${profile.name} 首页`}>
           <span>{profile.initials}</span>
@@ -196,7 +301,7 @@ function App() {
               waveAmplitude={1}
               particleSize={2}
               lerpSpeed={0.1}
-              color="#64D7EA"
+              color="#b88a34"
               autoAnimate={false}
               particleVariance={1}
               rotationSpeed={0}
