@@ -82,6 +82,9 @@ function App() {
     setActiveProjectIndex(index);
     setActiveGalleryIndex(0);
     setActiveInsightLabel(null);
+    window.setTimeout(() => {
+      projectSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
   };
 
   const scrollProjectRail = (direction: -1 | 1) => {
@@ -409,8 +412,14 @@ function App() {
           );
       };
 
+      const isCompactViewport = () => window.matchMedia("(max-width: 680px)").matches;
+
       ScrollTrigger.create({
-        end: "top+=8% top",
+        end: () =>
+          isCompactViewport()
+            ? "bottom 18%"
+            : `top+=${Math.round(window.innerHeight * 0.08)} top`,
+        invalidateOnRefresh: true,
         onEnter: flyProjectIn,
         onEnterBack: flyProjectIn,
         onLeave: () => flyProjectOut(1),
@@ -494,6 +503,7 @@ function App() {
     if (!projectSection || !nextSection) return;
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isCompactViewport = () => window.matchMedia("(max-width: 680px)").matches;
     let previousScrollY = window.scrollY;
     let lockUntil = 0;
     let settledOnProject = Math.abs(window.scrollY - projectSection.offsetTop) < 12;
@@ -537,13 +547,16 @@ function App() {
 
       if (Math.abs(projectDistance) < 14) return;
 
-      if (delta > 0 && projectDistance > viewportHeight * 0.2) {
+      const leaveThreshold = viewportHeight * (isCompactViewport() ? 0.36 : 0.2);
+      if (delta > 0 && projectDistance > leaveThreshold) {
         settledOnProject = false;
+        if (isCompactViewport()) return;
         scrollToY(nextTop);
         return;
       }
 
-      if (currentScrollY < projectTop - viewportHeight * 0.14 || projectDistance > projectHeight) {
+      const resetThreshold = viewportHeight * (isCompactViewport() ? 0.22 : 0.14);
+      if (currentScrollY < projectTop - resetThreshold || projectDistance > projectHeight) {
         settledOnProject = false;
       }
     };

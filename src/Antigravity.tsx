@@ -36,9 +36,8 @@ type Particle = {
 function createParticles(count: number, variance: number): Particle[] {
   return Array.from({ length: count }, () => {
     const angle = Math.random() * Math.PI * 2;
-    const radius = Math.sqrt(Math.random()) * 0.46;
-    const baseX = 0.5 + Math.cos(angle) * radius;
-    const baseY = 0.5 + Math.sin(angle) * radius;
+    const baseX = -0.08 + Math.random() * 1.16;
+    const baseY = -0.08 + Math.random() * 1.16;
     const size = 0.72 + Math.random() * variance;
 
     return {
