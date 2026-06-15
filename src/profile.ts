@@ -12,6 +12,10 @@ export type Project = {
   featured?: boolean;
   caseStudy?: {
     context: string;
+    cover?: {
+      src: string;
+      alt: string;
+    };
     contribution: string[];
     features: string[];
     engineering: string[];
@@ -85,6 +89,10 @@ export const projects: Project[] = [
     caseStudy: {
       context:
         "项目由 DOMINATORS 团队完成，整体系统包含 React Web / Electron Desktop、NestJS API、PostgreSQL、Prisma、Nginx、Traefik、Docker Compose 与 GitLab CI。游戏支持 Blocking、All Fives、Joker 特殊牌、1v1 AI、2-4 人在线对局、开放/私有房间和 2v2 / FFA 模式。",
+      cover: {
+        src: "/projects/covers/domino-cover.webp",
+        alt: "Domino project cover with falling domino tiles in front of desert pyramids",
+      },
       contribution: [
         "梳理多人对局关键流程，设计主菜单、模式选择、创建房间、等待房间、游戏桌面与结束页的信息结构",
         "实现房间创建表单：玩家人数、队伍模式、房间可见性、游戏模式、目标分数与 Joker 开关",
@@ -162,6 +170,10 @@ export const projects: Project[] = [
     caseStudy: {
       context:
         "《神秘旅途》是一款 4-6 人多人联机隐藏身份航海桌游。玩家选择公开角色登船，系统随后发放隐藏身份与隐藏任务。整局游戏围绕船体耐久、宝藏真假、甲板对峙、事件响应、鬼魂阶段和多阵营胜利条件展开。本项目是 v1.0 规则的 Web 联机测试版实现。",
+      cover: {
+        src: "/projects/covers/fog-night-train-cover.webp",
+        alt: "Fog Night Train cinematic cover with steam train, station and golden title",
+      },
       contribution: [
         "梳理 README 中的 official v1.0 规则，把玩家人数、身份配比、回合阶段、船体系统、宝藏补给和胜利条件拆成可实现模块",
         "参与 React + TypeScript 前端交互实现，面向多人房间、角色选择、行动提交、状态展示和回合反馈设计页面流程",
@@ -190,6 +202,11 @@ export const projects: Project[] = [
       ],
       gallery: [
         {
+          src: "/projects/covers/mjweb-cover.webp",
+          alt: "Mystery Journey web game interface with dark themed lobby and game parameters",
+          caption: "当前测试界面：雾夜列车开局参数、房间创建与规则配置。",
+        },
+        {
           src: "/projects/mjweb/system-overview.svg",
           alt: "MJWeb hidden identity voyage game system overview diagram",
           caption: "系统概览：玩家行动意图经 Socket.IO 进入服务端，由权威 GameState 统一结算并广播。",
@@ -213,6 +230,10 @@ export const projects: Project[] = [
     caseStudy: {
       context:
         "GameRun 是 UE Interface Homme-Machine 课程中的游戏平台设计项目，目标是为现代视频游戏平台设计一套兼顾沉浸感、可用性和效率的桌面端界面。项目从 personas 和任务分析出发，覆盖发现游戏、购买游戏、管理游戏库、个性化主题与快速选择随机游戏等场景。",
+      cover: {
+        src: "/projects/gamerun/brand-visual.webp",
+        alt: "GameRun visual direction with a golden gaming logo on a dark fantasy background",
+      },
       contribution: [
         "参与定义两个核心用户画像：追求沉浸与视觉体验的 Digital Native，以及重视效率和路径清晰度的 Joueur Efficient",
         "梳理平台核心任务：注册登录、浏览推荐、搜索与筛选、购买、管理游戏库、个性化界面和 Random Game",
@@ -309,6 +330,10 @@ export const projects: Project[] = [
     caseStudy: {
       context:
         "Jardin d'Asie 是位于法国 Haguenau 的亚洲餐厅。项目重点不是重新开发系统，而是在现有网站和线上平台基础上，把菜单、营业时间、公告、地址电话、预订入口和 Google 商家信息整理成更稳定、清晰、可持续维护的线上资料体系。",
+      cover: {
+        src: "/projects/covers/jardin-cover.webp",
+        alt: "Jardin d'Asie brand cover with restaurant name and red bowl logo",
+      },
       contribution: [
         "整理餐厅菜单与业务信息，统一菜品名称、分类、价格和展示顺序，减少顾客查找成本",
         "协助维护官网首页公告、营业时间、菜单入口和预订入口，保证关键信息在客户访问时清楚可见",
