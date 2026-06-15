@@ -350,10 +350,37 @@ function App() {
     const rail = projectRailRef.current;
     if (!rail) return;
     const isVertical = window.getComputedStyle(rail).flexDirection === "column";
-    rail.scrollBy({
+    const cards = Array.from(rail.querySelectorAll<HTMLElement>(".project-card"));
+    if (cards.length === 0) return;
+
+    const currentPosition = isVertical ? rail.scrollTop : rail.scrollLeft;
+    const maxPosition = isVertical
+      ? rail.scrollHeight - rail.clientHeight
+      : rail.scrollWidth - rail.clientWidth;
+    let currentIndex = cards.reduce((closestIndex, card, index) => {
+      const cardPosition = isVertical ? card.offsetTop : card.offsetLeft;
+      const closestPosition = isVertical
+        ? cards[closestIndex].offsetTop
+        : cards[closestIndex].offsetLeft;
+
+      return Math.abs(cardPosition - currentPosition) < Math.abs(closestPosition - currentPosition)
+        ? index
+        : closestIndex;
+    }, 0);
+
+    if (currentPosition <= 2) {
+      currentIndex = 0;
+    } else if (currentPosition >= maxPosition - 2) {
+      currentIndex = cards.length - 1;
+    }
+
+    const targetIndex = Math.max(0, Math.min(cards.length - 1, currentIndex + direction));
+    const targetCard = cards[targetIndex];
+
+    rail.scrollTo({
       behavior: "smooth",
-      left: isVertical ? 0 : direction * rail.clientWidth * 0.72,
-      top: isVertical ? direction * rail.clientHeight * 0.58 : 0,
+      left: isVertical ? 0 : targetCard.offsetLeft,
+      top: isVertical ? targetCard.offsetTop : 0,
     });
   };
 
@@ -450,6 +477,17 @@ function App() {
         const updateHeader = () => {
           const currentScrollY = window.scrollY;
           const delta = currentScrollY - previousScrollY;
+          const projectRect = projectSectionRef.current?.getBoundingClientRect();
+          const projectIsActive =
+            projectRect &&
+            projectRect.top < window.innerHeight * 0.58 &&
+            projectRect.bottom > window.innerHeight * 0.18;
+
+          if (projectIsActive) {
+            hideHeader();
+            previousScrollY = currentScrollY;
+            return;
+          }
 
           if (header.contains(document.activeElement) || currentScrollY < 80 || delta < -3) {
             showHeader();
@@ -461,7 +499,10 @@ function App() {
         };
 
         window.addEventListener("scroll", updateHeader, { passive: true });
+        window.addEventListener("resize", updateHeader);
+        window.requestAnimationFrame(updateHeader);
         cleanupFns.push(() => window.removeEventListener("scroll", updateHeader));
+        cleanupFns.push(() => window.removeEventListener("resize", updateHeader));
       }
 
       gsap.to(".hero-image", {
