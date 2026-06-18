@@ -416,6 +416,15 @@ export const experiences: Experience[] = [
 
 export const education: Education[] = [
   {
+    school: "电子科技大学 UESTC / 鲁昂高级工程师大学 ESIGELEC",
+    degree: "软件工程（研究生）",
+    period: "预计 2028 年毕业",
+    highlights: [
+      "软件工程研究生阶段学习与工程实践",
+      "中法双校培养背景，延续计算机、系统设计与工程项目能力积累",
+    ],
+  },
+  {
     school: "法国 · 斯特拉斯堡大学",
     degree: "计算机科学（本科）",
     period: "本科阶段",

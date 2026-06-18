@@ -122,6 +122,7 @@ function App() {
   const hrMessagesRef = useRef<HTMLDivElement>(null);
   const preloadedImagesRef = useRef<HTMLImageElement[]>([]);
   const projectSwitchTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const navSnapBypassUntilRef = useRef(0);
   const [welcomeReady, setWelcomeReady] = useState(false);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
@@ -389,9 +390,11 @@ function App() {
   };
 
   const handleNavClick = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (href !== "#work") return;
     event.preventDefault();
     window.history.pushState(null, "", href);
+    if (href !== "#work") {
+      navSnapBypassUntilRef.current = window.performance.now() + 1400;
+    }
     document.querySelector(href)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -856,13 +859,18 @@ function App() {
       const delta = currentScrollY - previousScrollY;
       previousScrollY = currentScrollY;
 
-      if (window.performance.now() < lockUntil || Math.abs(delta) < 2) return;
-
       const viewportHeight = window.innerHeight;
       const projectTop = projectSection.offsetTop;
       const projectHeight = projectSection.offsetHeight;
       const nextTop = nextSection.offsetTop;
       const projectDistance = currentScrollY - projectTop;
+
+      if (window.performance.now() < navSnapBypassUntilRef.current) {
+        settledOnProject = Math.abs(projectDistance) < 14;
+        return;
+      }
+
+      if (window.performance.now() < lockUntil || Math.abs(delta) < 2) return;
 
       if (!settledOnProject) {
         const enteringFromAbove =
