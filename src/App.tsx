@@ -11,6 +11,7 @@ import {
   Code2,
   Download,
   GalleryHorizontalEnd,
+  Languages,
   Layers3,
   Linkedin,
   Mail,
@@ -23,18 +24,10 @@ import {
 } from "lucide-react";
 import Antigravity from "./Antigravity";
 import heroImage from "./assets/hero-workspace.webp";
-import { education, experiences, profile, projects, skillGroups } from "./profile";
+import { contentByLanguage, languageOptions, type Language, type LocalizedContent } from "./i18n";
 import SplitText from "./SplitText";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
-
-const navItems = [
-  { href: "#work", label: "项目" },
-  { href: "#experience", label: "经历" },
-  { href: "#education", label: "教育" },
-  { href: "#skills", label: "能力" },
-  { href: "#contact", label: "联系" },
-];
 
 type HrChatMessage = {
   id: number;
@@ -42,49 +35,74 @@ type HrChatMessage = {
   text: string;
 };
 
-const hrQuickQuestions = ["求职方向？", "核心项目？", "技术栈？", "语言能力？"];
-
 const includesAny = (text: string, keywords: string[]) =>
   keywords.some((keyword) => text.includes(keyword));
 
-const buildHrAnswer = (rawQuestion: string) => {
+const getInitialLanguage = (): Language => {
+  if (typeof window === "undefined") return "zh";
+  return window.localStorage.getItem("portfolio-language") === "en" ? "en" : "zh";
+};
+
+const buildHrAnswer = (
+  rawQuestion: string,
+  content: LocalizedContent,
+  language: Language,
+) => {
   const question = rawQuestion.trim();
   const compact = question.replace(/\s/g, "").toLowerCase();
-  const projectTitles = projects.map((project) => project.title).join("、");
+  const { profile, projects, experiences, skillGroups, ui } = content;
+  const joiner = language === "zh" ? "、" : ", ";
+  const projectTitles = projects.map((project) => project.title).join(joiner);
   const skillSummary = skillGroups
-    .map((group) => `${group.title}：${group.skills.join("、")}`)
-    .join("；");
+    .map((group) => `${group.title}: ${group.skills.join(joiner)}`)
+    .join(language === "zh" ? "；" : "; ");
 
   if (includesAny(compact, ["联系方式", "联系", "邮箱", "电话", "contact", "email", "phone"])) {
-    return `可以通过邮箱 ${profile.email} 或电话 ${profile.phone} 联系 ${profile.name}。所在地/学习经历覆盖 ${profile.location}。`;
+    return language === "zh"
+      ? `可以通过邮箱 ${profile.email} 或电话 ${profile.phone} 联系 ${profile.name}。所在地/学习经历覆盖 ${profile.location}。`
+      : `You can contact ${profile.name} by email at ${profile.email} or by phone at ${profile.phone}. Current location/background: ${profile.location}.`;
   }
 
   if (includesAny(compact, ["简历", "resume", "cv"])) {
-    return `简历入口在页面顶部按钮中，文件路径是 ${profile.resumeUrl}。如果需要更详细项目材料，也可以通过 ${profile.email} 联系。`;
+    return language === "zh"
+      ? `简历入口在页面顶部按钮中，${ui.resumePathLabel}是 ${profile.resumeUrl}。如果需要更详细项目材料，也可以通过 ${profile.email} 联系。`
+      : `The resume button downloads ${profile.resumeUrl}. For more detailed project material, please contact ${profile.email}.`;
   }
 
   if (includesAny(compact, ["岗位", "方向", "求职", "应聘", "职位", "实习", "role", "position"])) {
-    return `${profile.englishName} 关注 ${profile.title} 相关机会，尤其适合产品经理实习、项目管理、前端开发/全栈以及需要跨团队沟通的岗位。`;
+    return language === "zh"
+      ? `${profile.englishName} 关注 ${profile.title} 相关机会，尤其适合产品经理实习、项目管理、前端开发/全栈以及需要跨团队沟通的岗位。`
+      : `${profile.englishName} is targeting roles around ${profile.title}, especially product management internships, project management, frontend/full-stack work, and cross-team collaboration.`;
   }
 
   if (includesAny(compact, ["项目", "作品", "案例", "portfolio", "project"])) {
-    return `核心项目包括：${projectTitles}。其中 Domino 与神秘旅途偏实时多人游戏和工程实现，GameRun 偏产品原型/交互设计，Jardin d'Asie 偏信息整理与运营支持。`;
+    return language === "zh"
+      ? `核心项目包括：${projectTitles}。其中 Domino 与神秘旅途偏实时多人游戏和工程实现，GameRun 偏产品原型/交互设计，Jardin d'Asie 偏信息整理与运营支持。`
+      : `Core projects include: ${projectTitles}. Domino and Mystery Journey focus on real-time multiplayer systems, GameRun focuses on product and interaction design, and Jardin d'Asie focuses on information management and operations support.`;
   }
 
   if (includesAny(compact, ["domino", "多米诺"])) {
-    return "Domino 项目是多人联机桌游开发，重点包括 React/TypeScript 前端、Socket.IO 实时同步、房间流程、响应式棋盘、拖拽交互和移动端适配。";
+    return language === "zh"
+      ? "Domino 项目是多人联机桌游开发，重点包括 React/TypeScript 前端、Socket.IO 实时同步、房间流程、响应式棋盘、拖拽交互和移动端适配。"
+      : "The Domino project is a multiplayer board game implementation focusing on React/TypeScript frontend work, Socket.IO real-time sync, room flow, responsive board design, drag-and-drop interaction, and mobile adaptation.";
   }
 
   if (includesAny(compact, ["神秘", "雾夜", "mjweb", "列车", "旅途"])) {
-    return "神秘旅途 / 雾夜列车项目是隐藏身份多人联机桌游，采用 React + TypeScript + Vite 客户端和 Node.js + Express + Socket.IO 服务端，核心思路是服务端权威 GameState。";
+    return language === "zh"
+      ? "神秘旅途 / 雾夜列车项目是隐藏身份多人联机桌游，采用 React + TypeScript + Vite 客户端和 Node.js + Express + Socket.IO 服务端，核心思路是服务端权威 GameState。"
+      : "Mystery Journey / Fog Night Train is a hidden-identity multiplayer board game using a React + TypeScript + Vite client and a Node.js + Express + Socket.IO server, centered on authoritative server-side GameState.";
   }
 
   if (includesAny(compact, ["gamerun", "游戏", "figma", "原型"])) {
-    return "GameRun 是游戏平台产品设计项目，覆盖 personas、任务分析、低保真线框、高保真 Figma 原型、交互流和用户测试迭代。";
+    return language === "zh"
+      ? "GameRun 是游戏平台产品设计项目，覆盖 personas、任务分析、低保真线框、高保真 Figma 原型、交互流和用户测试迭代。"
+      : "GameRun is a gaming platform product design project covering personas, task analysis, low-fidelity wireframes, high-fidelity Figma prototypes, interaction flows, and usability iteration.";
   }
 
   if (includesAny(compact, ["jardin", "餐厅", "运营", "信息整理"])) {
-    return "Jardin d'Asie 项目体现信息整理和运营支持能力，负责菜单、官网公告、营业时间、预约入口和 Google 商家资料的一致性维护。";
+    return language === "zh"
+      ? "Jardin d'Asie 项目体现信息整理和运营支持能力，负责菜单、官网公告、营业时间、预约入口和 Google 商家资料的一致性维护。"
+      : "Jardin d'Asie shows information management and operations support experience, including menu organization, website notices, opening hours, reservation entry points, and Google Business profile consistency.";
   }
 
   if (includesAny(compact, ["技能", "技术", "栈", "工具", "skill", "tech", "stack"])) {
@@ -92,15 +110,21 @@ const buildHrAnswer = (rawQuestion: string) => {
   }
 
   if (includesAny(compact, ["语言", "英语", "法语", "中文", "language"])) {
-    return "语言能力：中文母语，英语流利 / IELTS 6.0，法语 B2；适合中英法多语言沟通和跨文化团队协作。";
+    return language === "zh"
+      ? "语言能力：中文母语，英语流利 / IELTS 6.0，法语 B2；适合中英法多语言沟通和跨文化团队协作。"
+      : "Language ability: Chinese native, English fluent / IELTS 6.0, French B2. Suitable for multilingual and cross-cultural collaboration.";
   }
 
   if (includesAny(compact, ["教育", "学校", "学历", "大学", "专业", "education", "degree"])) {
-    return `${profile.englishName} 是法国斯特拉斯堡大学计算机科学本科生，系统学习算法、数据库、软件工程与产品设计相关课程。`;
+    return language === "zh"
+      ? `${profile.englishName} 拥有计算机科学本科背景，正在软件工程研究生阶段学习，系统学习算法、数据库、软件工程与产品设计相关课程。`
+      : `${profile.englishName} has a computer science undergraduate background and is now pursuing graduate study in software engineering, with coursework and practice across algorithms, databases, software engineering, and product design.`;
   }
 
   if (includesAny(compact, ["经验", "经历", "experience"])) {
-    return `经历包括${experiences.map((item) => `${item.company}的${item.title}`).join("，")}，覆盖数据管理、信息整理、内容维护和运营支持。`;
+    return language === "zh"
+      ? `经历包括${experiences.map((item) => `${item.company}的${item.title}`).join("，")}，覆盖数据管理、信息整理、内容维护和运营支持。`
+      : `Experience includes ${experiences.map((item) => `${item.title} at ${item.company}`).join("; ")}, covering data management, information organization, content maintenance, and operations support.`;
   }
 
   if (includesAny(compact, ["优势", "亮点", "为什么", "strength"])) {
@@ -108,10 +132,14 @@ const buildHrAnswer = (rawQuestion: string) => {
   }
 
   if (includesAny(compact, ["到岗", "入职", "时间", "availability", "available"])) {
-    return "网站没有公开具体到岗日期，建议通过邮箱确认；目前页面展示的方向是实习、项目协作、产品/前端/项目管理相关机会。";
+    return language === "zh"
+      ? "网站没有公开具体到岗日期，建议通过邮箱确认；目前页面展示的方向是实习、项目协作、产品/前端/项目管理相关机会。"
+      : "The site does not publish a specific start date. Please confirm by email. The displayed target areas are internships, project collaboration, product, frontend, and project management roles.";
   }
 
-  return `这个问题网站没有完整公开。可以继续问“求职方向、核心项目、技术栈、语言能力、联系方式”，或直接通过 ${profile.email} 联系确认。`;
+  return language === "zh"
+    ? `这个问题网站没有完整公开。可以继续问“求职方向、核心项目、技术栈、语言能力、联系方式”，或直接通过 ${profile.email} 联系确认。`
+    : `This question is not fully covered on the site. You can ask about target roles, core projects, tech stack, languages, or contact details, or email ${profile.email} directly.`;
 };
 
 function App() {
@@ -123,6 +151,8 @@ function App() {
   const preloadedImagesRef = useRef<HTMLImageElement[]>([]);
   const projectSwitchTimelineRef = useRef<gsap.core.Timeline | null>(null);
   const navSnapBypassUntilRef = useRef(0);
+  const [language, setLanguage] = useState<Language>(getInitialLanguage);
+  const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [welcomeReady, setWelcomeReady] = useState(false);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
@@ -137,9 +167,11 @@ function App() {
     {
       id: 1,
       role: "bot",
-      text: "你好，我可以快速回答求职方向、项目经历、技术栈、语言能力和联系方式等 HR 常见问题。",
+      text: contentByLanguage[getInitialLanguage()].ui.hrGreeting,
     },
   ]);
+  const content = contentByLanguage[language];
+  const { education, experiences, profile, projects, skillGroups, ui } = content;
   const activeProject = projects[activeProjectIndex];
   const activeCaseStudy = activeProject.caseStudy;
   const activeCover = activeCaseStudy?.cover ?? activeCaseStudy?.gallery[0];
@@ -148,17 +180,17 @@ function App() {
         {
           icon: Layers3,
           items: activeCaseStudy.contribution,
-          label: "我的职责",
+          label: ui.insightLabels.contribution,
         },
         {
           icon: GalleryHorizontalEnd,
           items: activeCaseStudy.features,
-          label: "产品功能",
+          label: ui.insightLabels.features,
         },
         {
           icon: Code2,
           items: activeCaseStudy.engineering,
-          label: "工程亮点",
+          label: ui.insightLabels.engineering,
         },
       ]
     : [];
@@ -398,6 +430,20 @@ function App() {
     document.querySelector(href)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const handleLanguageChange = (nextLanguage: Language) => {
+    if (nextLanguage === language) {
+      setLanguageMenuOpen(false);
+      return;
+    }
+
+    setLanguage(nextLanguage);
+    setLanguageMenuOpen(false);
+    setActiveInsightLabel(null);
+    setLightboxImage(null);
+    setHrInput("");
+    window.localStorage.setItem("portfolio-language", nextLanguage);
+  };
+
   const askHrQuestion = (rawQuestion: string) => {
     const question = rawQuestion.trim();
     if (!question) return;
@@ -407,7 +453,7 @@ function App() {
       return [
         ...messages,
         { id: baseId, role: "user", text: question },
-        { id: baseId + 1, role: "bot", text: buildHrAnswer(question) },
+        { id: baseId + 1, role: "bot", text: buildHrAnswer(question, content, language) },
       ];
     });
     setHrInput("");
@@ -802,6 +848,18 @@ function App() {
   }, []);
 
   useEffect(() => {
+    document.documentElement.lang = language === "zh" ? "zh-CN" : "en";
+    setActiveInsightLabel(null);
+    setHrMessages([
+      {
+        id: Date.now(),
+        role: "bot",
+        text: ui.hrGreeting,
+      },
+    ]);
+  }, [language, ui.hrGreeting]);
+
+  useEffect(() => {
     const messages = hrMessagesRef.current;
     if (!hrChatOpen || !messages) return;
     messages.scrollTo({ behavior: "smooth", top: messages.scrollHeight });
@@ -834,7 +892,7 @@ function App() {
       window.clearTimeout(preloadTimer);
       preloadedImagesRef.current = [];
     };
-  }, []);
+  }, [profile.photoUrl, projects]);
 
   useEffect(() => {
     const projectSection = projectSectionRef.current;
@@ -968,23 +1026,51 @@ function App() {
   return (
     <main className="app-shell" ref={appRef}>
       <a className="skip-link" href="#profile">
-        跳到主要内容
+        {ui.mainContent}
       </a>
-      <header className="site-header" aria-label="主导航">
-        <a className="brand" href="#top" aria-label={`${profile.name} 首页`}>
+      <header className="site-header" aria-label={ui.brandHome}>
+        <a className="brand" href="#top" aria-label={`${profile.name} ${ui.brandHome}`}>
           <span>{profile.initials}</span>
           <strong>{profile.name}</strong>
         </a>
         <nav>
-          {navItems.map((item) => (
+          {ui.nav.map((item) => (
             <a href={item.href} key={item.href} onClick={(event) => handleNavClick(event, item.href)}>
               {item.label}
             </a>
           ))}
         </nav>
+        <div className="language-switcher">
+          <button
+            className="language-button"
+            type="button"
+            onClick={() => setLanguageMenuOpen((open) => !open)}
+            aria-expanded={languageMenuOpen}
+            aria-label={ui.language}
+          >
+            <Languages size={16} aria-hidden="true" />
+            <span>{languageOptions.find((option) => option.value === language)?.label}</span>
+          </button>
+          {languageMenuOpen ? (
+            <div className="language-menu" role="menu" aria-label={ui.language}>
+              {languageOptions.map((option) => (
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={language === option.value}
+                  className={language === option.value ? "is-active" : undefined}
+                  key={option.value}
+                  onClick={() => handleLanguageChange(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </header>
 
-      <section className="welcome-screen" id="top" aria-label="欢迎界面">
+      <section className="welcome-screen" id="top" aria-label={ui.welcome}>
         <div className="welcome-background" aria-hidden="true">
           <div className="antigravity-layer">
             <Antigravity
@@ -1016,7 +1102,7 @@ function App() {
           </p>
           <SplitText
             tag="h1"
-            text="欢迎来到我的作品集"
+            text={ui.welcome}
             className="welcome-title"
             delay={70}
             duration={0.72}
@@ -1030,16 +1116,16 @@ function App() {
             onLetterAnimationComplete={() => setWelcomeReady(true)}
           />
           <p className={`welcome-subtitle ${welcomeReady ? "is-visible" : ""}`}>
-            产品经理（实习） / 项目管理 / 前端开发 / 全栈
+            {ui.welcomeSubtitle}
           </p>
           <div className={`welcome-actions ${welcomeReady ? "is-visible" : ""}`}>
             <button className="button primary" type="button" onClick={enterPortfolio}>
-              进入作品集
+              {ui.enterPortfolio}
               <ArrowUpRight size={18} aria-hidden="true" />
             </button>
             <a className="button secondary" href={profile.resumeUrl}>
               <Download size={18} aria-hidden="true" />
-              下载简历
+              {ui.downloadResume}
             </a>
           </div>
         </div>
@@ -1058,14 +1144,14 @@ function App() {
             <p className="hero-title">{profile.title}</p>
             <p className="hero-headline">{profile.headline}</p>
             <p className="hero-intro">{profile.intro}</p>
-            <div className="hero-actions" aria-label="主要操作">
+            <div className="hero-actions" aria-label={ui.heroActions}>
               <a className="button primary" href={`mailto:${profile.email}`}>
                 <Mail size={18} aria-hidden="true" />
-                联系我
+                {ui.contactMe}
               </a>
               <a className="button secondary" href={profile.resumeUrl}>
                 <Download size={18} aria-hidden="true" />
-                下载简历
+                {ui.downloadResume}
               </a>
             </div>
           </div>
@@ -1073,7 +1159,7 @@ function App() {
           <figure className="hero-portrait" data-reveal>
             <img
               src={profile.photoUrl}
-              alt={`${profile.englishName} 证件照`}
+              alt={`${profile.englishName} ${ui.portraitAlt}`}
               decoding="async"
             />
             <figcaption>
@@ -1084,7 +1170,7 @@ function App() {
         </div>
       </section>
 
-      <section className="summary-band" aria-label="个人摘要" data-reveal>
+      <section className="summary-band" aria-label="Profile summary" data-reveal>
         <div className="summary-inner">
           {profile.metrics.map((metric) => (
             <div className="metric" key={metric.label}>
@@ -1098,7 +1184,7 @@ function App() {
       <section className="section intro-grid" data-reveal>
         <div>
           <p className="section-kicker">Profile</p>
-          <h2>以扎实工程基础，把想法设计清楚并实现出来。</h2>
+          <h2>{ui.profileHeading}</h2>
         </div>
         <div className="strengths">
           {profile.strengths.map((strength) => (
@@ -1142,7 +1228,7 @@ function App() {
               {projectInsightGroups.length > 0 ? (
                 <div
                   className="project-insight-panel"
-                  aria-label={`${activeProject.title} 的职责、功能和工程亮点`}
+                  aria-label={`${activeProject.title} ${ui.insightDialog}`}
                 >
                   {projectInsightGroups.map(({ icon: Icon, items, label }) => (
                     <button
@@ -1150,7 +1236,7 @@ function App() {
                       key={label}
                       type="button"
                       onClick={() => setActiveInsightLabel(label)}
-                      aria-label={`查看${label}完整信息`}
+                      aria-label={`${label} ${ui.insightDialog}`}
                     >
                       <span className="project-insight-title">
                         <Icon size={16} aria-hidden="true" />
@@ -1171,10 +1257,10 @@ function App() {
                 </div>
               ) : null}
               {activeCaseStudy?.gallery.length ? (
-                <div className="project-gallery-strip" aria-label={`${activeProject.title} 相册`}>
+                <div className="project-gallery-strip" aria-label={`${activeProject.title} ${ui.projectGallery}`}>
                   <div className="project-gallery-label">
-                    <span>Gallery</span>
-                    <strong>项目相册</strong>
+                    <span>{ui.gallery}</span>
+                    <strong>{ui.projectGallery}</strong>
                   </div>
                   <div className="project-gallery-thumbs">
                     {activeCaseStudy.gallery.slice(0, 4).map((image, index) => (
@@ -1185,7 +1271,7 @@ function App() {
                         key={image.src}
                         type="button"
                         onClick={() => openGalleryImage(index)}
-                        aria-label={`打开第 ${index + 1} 张项目图片：${image.caption}`}
+                        aria-label={`${ui.lightbox} ${index + 1}: ${image.caption}`}
                       >
                         <img src={image.src} alt={image.alt} decoding="async" loading="lazy" />
                         <span>{String(index + 1).padStart(2, "0")}</span>
@@ -1197,14 +1283,14 @@ function App() {
                         type="button"
                         onClick={() => openGalleryImage(0)}
                       >
-                        查看全部 {activeCaseStudy.gallery.length}
+                        {ui.viewAll} {activeCaseStudy.gallery.length}
                       </button>
                     ) : null}
                   </div>
                 </div>
               ) : null}
               <div className="project-stage-actions">
-                <div className="tag-list" aria-label={`${activeProject.title} 技术标签`}>
+                <div className="tag-list" aria-label={`${activeProject.title} ${ui.skillTags}`}>
                   {activeProject.tags.map((tag) => (
                     <span key={tag}>{tag}</span>
                   ))}
@@ -1219,26 +1305,26 @@ function App() {
             </div>
           </div>
 
-          <aside className="project-rail-panel" aria-label="项目列表">
+          <aside className="project-rail-panel" aria-label={ui.projectList}>
             <div className="project-rail-heading">
               <div>
-                <p className="section-kicker">Selected Work</p>
-                <h2>精选项目</h2>
+                <p className="section-kicker">{ui.selectedWork}</p>
+                <h2>{ui.selectedWorkTitle}</h2>
               </div>
-              <div className="carousel-controls" aria-label="项目滑动控制">
+              <div className="carousel-controls" aria-label={ui.projectNav}>
                 <button
                   type="button"
                   onClick={() => scrollProjectRail(-1)}
-                  aria-label="浏览上一个项目"
-                  title="浏览上一个项目"
+                  aria-label={ui.previousProject}
+                  title={ui.previousProject}
                 >
                   <ChevronLeft size={20} aria-hidden="true" />
                 </button>
                 <button
                   type="button"
                   onClick={() => scrollProjectRail(1)}
-                  aria-label="浏览下一个项目"
-                  title="浏览下一个项目"
+                  aria-label={ui.nextProject}
+                  title={ui.nextProject}
                 >
                   <ChevronRight size={20} aria-hidden="true" />
                 </button>
@@ -1272,7 +1358,7 @@ function App() {
                     </div>
                     <div className="project-card-body">
                       <div className="project-topline">
-                        <span className={project.period === "进行中" ? "status-pill" : undefined}>
+                        <span className={index === 1 ? "status-pill" : undefined}>
                           {project.period}
                         </span>
                         <span>{project.role}</span>
@@ -1284,7 +1370,7 @@ function App() {
                 );
               })}
             </div>
-            <p className="project-count">{projects.length} projects · 2024–2026</p>
+            <p className="project-count">{projects.length} {ui.projectCountLabel}</p>
           </aside>
         </div>
       </section>
@@ -1303,7 +1389,7 @@ function App() {
               type="button"
               ref={insightCloseRef}
               onClick={() => setActiveInsightLabel(null)}
-              aria-label="关闭详情窗口"
+              aria-label={ui.closeDetails}
             >
               <X size={22} aria-hidden="true" />
             </button>
@@ -1331,7 +1417,7 @@ function App() {
           className="lightbox"
           role="dialog"
           aria-modal="true"
-          aria-label="项目图片预览"
+          aria-label={ui.lightbox}
           onClick={() => setLightboxImage(null)}
         >
           <div className="lightbox-panel" onClick={(event) => event.stopPropagation()}>
@@ -1339,7 +1425,7 @@ function App() {
               className="lightbox-close"
               type="button"
               onClick={() => setLightboxImage(null)}
-              aria-label="关闭图片预览"
+              aria-label={ui.closePreview}
             >
               <X size={22} aria-hidden="true" />
             </button>
@@ -1349,7 +1435,7 @@ function App() {
                   className="lightbox-nav previous"
                   type="button"
                   onClick={() => showLightboxImage(-1)}
-                  aria-label="上一张图片"
+                  aria-label={ui.previousImage}
                 >
                   <ChevronLeft size={28} aria-hidden="true" />
                 </button>
@@ -1357,7 +1443,7 @@ function App() {
                   className="lightbox-nav next"
                   type="button"
                   onClick={() => showLightboxImage(1)}
-                  aria-label="下一张图片"
+                  aria-label={ui.nextImage}
                 >
                   <ChevronRight size={28} aria-hidden="true" />
                 </button>
@@ -1382,7 +1468,7 @@ function App() {
         <div className="section-heading">
           <div>
             <p className="section-kicker">Experience</p>
-            <h2>职业经历</h2>
+            <h2>{ui.nav.find((item) => item.href === "#experience")?.label}</h2>
           </div>
         </div>
         <div className="timeline">
@@ -1413,7 +1499,7 @@ function App() {
         <div className="section-heading">
           <div>
             <p className="section-kicker">Education</p>
-            <h2>教育背景</h2>
+            <h2>{ui.nav.find((item) => item.href === "#education")?.label}</h2>
           </div>
         </div>
         <div className="education-grid">
@@ -1438,7 +1524,7 @@ function App() {
         <div className="section-heading">
           <div>
             <p className="section-kicker">Capabilities</p>
-            <h2>核心能力</h2>
+            <h2>{ui.nav.find((item) => item.href === "#skills")?.label}</h2>
           </div>
         </div>
         <div className="skill-grid">
@@ -1459,7 +1545,7 @@ function App() {
       <section className="contact" id="contact" data-reveal>
         <div>
           <p className="section-kicker">Contact</p>
-          <h2>期待聊聊你的团队正在解决的问题。</h2>
+          <h2>{ui.contactHeading}</h2>
         </div>
         <div className="contact-links">
           <a href={`mailto:${profile.email}`}>
@@ -1485,7 +1571,7 @@ function App() {
 
       <aside
         className={`hr-assistant ${hrChatOpen ? "is-open" : ""}`}
-        aria-label="HR 自动问答助手"
+        aria-label={ui.hrAssistant}
       >
         {hrChatOpen ? (
           <section className="hr-chat-panel" aria-live="polite">
@@ -1502,7 +1588,7 @@ function App() {
               <button
                 type="button"
                 onClick={() => setHrChatOpen(false)}
-                aria-label="关闭 HR 问答助手"
+                aria-label={ui.closeAssistant}
               >
                 <X size={18} aria-hidden="true" />
               </button>
@@ -1516,8 +1602,8 @@ function App() {
               ))}
             </div>
 
-            <div className="hr-chat-prompts" aria-label="快捷问题">
-              {hrQuickQuestions.map((question) => (
+            <div className="hr-chat-prompts" aria-label={ui.hrAssistant}>
+              {ui.hrPrompts.map((question) => (
                 <button type="button" key={question} onClick={() => askHrQuestion(question)}>
                   {question}
                 </button>
@@ -1528,10 +1614,10 @@ function App() {
               <input
                 value={hrInput}
                 onChange={(event) => setHrInput(event.target.value)}
-                placeholder="问一个 HR 常见问题"
-                aria-label="输入 HR 问题"
+                placeholder={ui.hrPlaceholder}
+                aria-label={ui.hrInput}
               />
-              <button type="submit" aria-label="发送问题">
+              <button type="submit" aria-label={ui.sendQuestion}>
                 <SendHorizontal size={18} aria-hidden="true" />
               </button>
             </form>
@@ -1542,7 +1628,7 @@ function App() {
           className="hr-chat-toggle"
           type="button"
           onClick={() => setHrChatOpen((open) => !open)}
-          aria-label={hrChatOpen ? "收起 HR 问答助手" : "打开 HR 问答助手"}
+          aria-label={hrChatOpen ? ui.closeAssistant : ui.hrAssistant}
         >
           {hrChatOpen ? (
             <X size={22} aria-hidden="true" />
