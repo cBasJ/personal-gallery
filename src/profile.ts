@@ -50,7 +50,7 @@ export const profile = {
   title: "产品经理（实习） / 项目管理 / 前端开发 / 全栈",
   location: "四川成都 / 法国斯特拉斯堡",
   email: "zhangrenyufr@163.com",
-  phone: "183 0285 7593",
+  phone: "18123298509",
   linkedin: "",
   photoUrl: "/profile/renyu-zhang.jpg",
   resumeUrl: "/renyu-zhang-resume.pdf",
