@@ -117,8 +117,8 @@ const buildHrAnswer = (
 
   if (includesAny(compact, ["教育", "学校", "学历", "大学", "专业", "education", "degree"])) {
     return language === "zh"
-      ? `${profile.englishName} 拥有计算机科学本科背景，正在软件工程研究生阶段学习，系统学习算法、数据库、软件工程与产品设计相关课程。`
-      : `${profile.englishName} has a computer science undergraduate background and is now pursuing graduate study in software engineering, with coursework and practice across algorithms, databases, software engineering, and product design.`;
+      ? `${profile.englishName} 拥有计算机科学本科背景，正在成都理工大学 / 牛津布鲁克斯大学数据科学与人工智能研究生阶段学习，系统学习算法、数据库、软件工程与产品设计相关课程。`
+      : `${profile.englishName} has a computer science undergraduate background and is now pursuing graduate study in data science and artificial intelligence at Chengdu University of Technology and Oxford Brookes University, with coursework and practice across algorithms, databases, software engineering, and product design.`;
   }
 
   if (includesAny(compact, ["经验", "经历", "experience"])) {

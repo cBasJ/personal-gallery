@@ -320,12 +320,12 @@ const englishExperiences: Experience[] = [
 
 const englishEducation: Education[] = [
   {
-    school: "University of Electronic Science and Technology of China / ESIGELEC",
-    degree: "Software Engineering (Master's)",
+    school: "Chengdu University of Technology / Oxford Brookes University",
+    degree: "Data Science and Artificial Intelligence (Master's)",
     period: "Expected 2028",
     highlights: [
-      "Graduate study and engineering practice in software engineering.",
-      "Sino-French dual-school background with continued training in computer science, system design, and engineering projects.",
+      "Graduate study and engineering practice in data science and artificial intelligence.",
+      "Sino-British dual-school background with continued training in computer science, system design, and engineering projects.",
     ],
   },
   {
@@ -367,8 +367,8 @@ const englishProfile: Profile = {
   headline:
     "Computer science and software engineering background, focused on turning ideas into clear product flows and shipped systems.",
   intro:
-    "Software Engineering master's student with a computer science background from the University of Strasbourg. Experienced in multiplayer web games, product prototyping, interaction flows, user testing, frontend implementation, and team collaboration.",
-  availability: "Software Engineering Master's · UESTC / ESIGELEC",
+    "Data Science and Artificial Intelligence master's student with a computer science background from the University of Strasbourg. Experienced in multiplayer web games, product prototyping, interaction flows, user testing, frontend implementation, and team collaboration.",
+  availability: "Data Science and Artificial Intelligence Master's · Chengdu University of Technology / Oxford Brookes University",
   metrics: [
     { label: "Core Projects", value: "4" },
     { label: "Languages", value: "CN / EN / FR" },
