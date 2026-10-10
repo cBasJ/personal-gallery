@@ -75,10 +75,15 @@ const buildHrAnswer = (
       : `${profile.englishName} is targeting roles around ${profile.title}, especially product management internships, project management, frontend/full-stack work, and cross-team collaboration.`;
   }
 
+  if (includesAny(compact, ["畅玩", "升级", "shengji", "tractor", "微信", "wechat"])) {
+    const project = projects.find((item) => item.title.includes("畅玩升级") || item.title.includes("Shengji"));
+    if (project) return `${project.summary} ${project.impact}`;
+  }
+
   if (includesAny(compact, ["项目", "作品", "案例", "portfolio", "project"])) {
     return language === "zh"
-      ? `核心项目包括：${projectTitles}。其中 Domino 与神秘旅途偏实时多人游戏和工程实现，GameRun 偏产品原型/交互设计，Jardin d'Asie 偏信息整理与运营支持。`
-      : `Core projects include: ${projectTitles}. Domino and Mystery Journey focus on real-time multiplayer systems, GameRun focuses on product and interaction design, and Jardin d'Asie focuses on information management and operations support.`;
+      ? `核心项目包括：${projectTitles}。其中畅玩升级侧重微信小游戏、触摸交互与全栈实现，Domino 与神秘旅途偏实时多人游戏和工程实现，GameRun 偏产品原型/交互设计，Jardin d'Asie 偏信息整理与运营支持。`
+      : `Core projects include: ${projectTitles}. Changwan Shengji focuses on WeChat Mini Game development, touch interaction, and full-stack implementation; Domino and Mystery Journey focus on real-time multiplayer systems, GameRun focuses on product and interaction design, and Jardin d'Asie focuses on information management and operations support.`;
   }
 
   if (includesAny(compact, ["domino", "多米诺"])) {

@@ -1,3 +1,5 @@
+import { shengjiEn } from "./shengji";
+
 import {
   education,
   experiences,
@@ -287,6 +289,7 @@ const englishProjects: Project[] = [
         }
       : undefined,
   },
+  shengjiEn,
 ];
 
 const englishExperiences: Experience[] = [
@@ -370,7 +373,7 @@ const englishProfile: Profile = {
     "Data Science and Artificial Intelligence master's student with a computer science background from the University of Strasbourg. Experienced in multiplayer web games, product prototyping, interaction flows, user testing, frontend implementation, and team collaboration.",
   availability: "Data Science and Artificial Intelligence Master's · Chengdu University of Technology / Oxford Brookes University",
   metrics: [
-    { label: "Core Projects", value: "4" },
+    { label: "Core Projects", value: String(englishProjects.length) },
     { label: "Languages", value: "CN / EN / FR" },
     { label: "Focus", value: "Product + PM + Frontend/Full-stack" },
   ],

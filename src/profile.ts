@@ -1,3 +1,5 @@
+import { shengjiZh } from "./shengji";
+
 export type Project = {
   title: string;
   role: string;
@@ -59,7 +61,7 @@ export const profile = {
     "法国斯特拉斯堡大学计算机科学本科生，系统学习算法、数据库、软件工程与产品设计相关课程。曾参与多人在线桌游开发和 GameRun 游戏平台设计，兼具前端实现、产品原型、交互流程、用户测试与团队协作经验。",
   availability: "计算机科学本科 · 斯特拉斯堡大学",
   metrics: [
-    { label: "核心项目", value: "4" },
+    { label: "核心项目", value: "5" },
     { label: "语言能力", value: "中 / 英 / 法" },
     { label: "重点方向", value: "产品 + 项目管理 + 前端/全栈" },
   ],
@@ -383,6 +385,7 @@ export const projects: Project[] = [
       ],
     },
   },
+  shengjiZh,
 ];
 
 export const experiences: Experience[] = [
