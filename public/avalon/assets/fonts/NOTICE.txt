@@ -1,0 +1,1 @@
+AvalonHand is a subset of Yozai Regular by LXGW, derived from Y.OzFont. Licensed under SIL OFL 1.1; see OFL-Yozai.txt. Renamed to avoid use of Reserved Font Names in this modified font. Common simplified Chinese and UI characters are bundled; missing glyphs use system fallback.
