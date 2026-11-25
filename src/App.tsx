@@ -1158,6 +1158,9 @@ function App() {
                 <Download size={18} aria-hidden="true" />
                 {ui.downloadResume}
               </a>
+              <a className="button secondary" href="/avalon/">
+                {language === "zh" ? "阿瓦隆发牌器" : "Avalon card dealer"}
+              </a>
             </div>
           </div>
 
