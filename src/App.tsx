@@ -148,6 +148,25 @@ const buildHrAnswer = (
 };
 
 function App() {
+  const easterEggDialog = useRef<HTMLDialogElement>(null);
+  const easterEggClicks = useRef({ count: 0, last: 0 });
+  function revealEasterEgg() {
+    const now = Date.now();
+    const previous = easterEggClicks.current;
+    const count = now - previous.last <= 900 ? previous.count + 1 : 1;
+    easterEggClicks.current = { count, last: now };
+    if (count === 3) {
+      easterEggClicks.current.count = 0;
+      if (!easterEggDialog.current?.open) easterEggDialog.current?.showModal();
+    }
+  }
+  const easterEggKeys = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      if (!event.repeat) revealEasterEgg();
+    }
+  };
+
   const appRef = useRef<HTMLElement>(null);
   const projectSectionRef = useRef<HTMLElement>(null);
   const projectRailRef = useRef<HTMLDivElement>(null);
@@ -1036,7 +1055,7 @@ function App() {
       <header className="site-header" aria-label={ui.brandHome}>
         <a className="brand" href="#top" aria-label={`${profile.name} ${ui.brandHome}`}>
           <span>{profile.initials}</span>
-          <strong>{profile.name}</strong>
+          <strong className="easter-egg-trigger" onClick={event => {event.preventDefault();revealEasterEgg();}}>{profile.name}</strong>
         </a>
         <nav>
           {ui.nav.map((item) => (
@@ -1145,7 +1164,7 @@ function App() {
               <Sparkles size={16} aria-hidden="true" />
               {profile.availability}
             </div>
-            <h1>{profile.name}</h1>
+            <h1 className="easter-egg-trigger" role="button" tabIndex={0} onClick={revealEasterEgg} onKeyDown={easterEggKeys}>{profile.name}</h1>
             <p className="hero-title">{profile.title}</p>
             <p className="hero-headline">{profile.headline}</p>
             <p className="hero-intro">{profile.intro}</p>
@@ -1158,20 +1177,22 @@ function App() {
                 <Download size={18} aria-hidden="true" />
                 {ui.downloadResume}
               </a>
-              <a className="button secondary" href="/avalon/">
-                {language === "zh" ? "阿瓦隆发牌器" : "Avalon card dealer"}
-              </a>
             </div>
           </div>
 
           <figure className="hero-portrait" data-reveal>
             <img
+              className="easter-egg-trigger"
+              role="button"
+              tabIndex={0}
+              onClick={revealEasterEgg}
+              onKeyDown={easterEggKeys}
               src={profile.photoUrl}
               alt={`${profile.englishName} ${ui.portraitAlt}`}
               decoding="async"
             />
             <figcaption>
-              <strong>{profile.englishName}</strong>
+              <strong className="easter-egg-trigger" role="button" tabIndex={0} onClick={revealEasterEgg} onKeyDown={easterEggKeys}>{profile.englishName}</strong>
               <span>{profile.location}</span>
             </figcaption>
           </figure>
@@ -1645,6 +1666,13 @@ function App() {
           )}
         </button>
       </aside>
+      <dialog className="easter-egg-menu" ref={easterEggDialog} aria-labelledby="easter-egg-title" onClick={event => { if (event.target === event.currentTarget) easterEggDialog.current?.close(); }}>
+        <div className="easter-egg-menu-header">
+          <h2 id="easter-egg-title">{language === "zh" ? "闲暇时光" : "After hours"}</h2>
+          <button type="button" autoFocus aria-label={language === "zh" ? "关闭" : "Close"} onClick={() => easterEggDialog.current?.close()}>×</button>
+        </div>
+        <a href="/avalon/">{language === "zh" ? "阿瓦隆" : "Avalon"}<span aria-hidden="true">↗</span></a>
+      </dialog>
     </main>
   );
 }
